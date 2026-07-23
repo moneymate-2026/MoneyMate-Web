@@ -1,53 +1,50 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import MerchantSidebar from '../components/MerchantSidebar';
 import MerchantNavbar from '../components/MerchantNavbar';
 import MerchantBottomNav from '../components/MerchantBottomNav';
 import StatCard from '../components/StatCard';
+import { gatewayClient } from '../../api/gatewayClient';
 
-export default function Dashboard({ navigate }) {
+export default function Dashboard({ navigate, showToast }) {
   const currentPath = '/merchant/dashboard';
+  const [stats, setStats] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [businessName, setBusinessName] = useState('Apex Innovations LLC');
+  const [loading, setLoading] = useState(true);
 
-  const stats = [
-    {
-      title: "Total Rewards Issued",
-      value: "$1,245.80",
-      icon: "workspace_premium",
-      iconColorClass: "text-primary bg-primary/10",
-      borderClass: "border-l-primary",
-      trend: { text: "+12% this week", type: "up" }
-    },
-    {
-      title: "Total QR Scan Volume",
-      value: "$24,500.00",
-      icon: "payments",
-      iconColorClass: "text-tertiary bg-tertiary/10",
-      borderClass: "border-l-tertiary",
-      trend: { text: "+8% vs last month", type: "up" }
-    },
-    {
-      title: "Active Campaigns",
-      value: "3 Active",
-      icon: "local_offer",
-      iconColorClass: "text-secondary bg-secondary-fixed/35",
-      borderClass: "border-l-secondary",
-      trend: { text: "1 ending soon", type: "neutral" }
-    },
-    {
-      title: "Customers Rewarded",
-      value: "1,150",
-      icon: "person",
-      iconColorClass: "text-outline bg-outline/10",
-      borderClass: "border-l-outline",
-      trend: { text: "+45 new today", type: "up" }
-    }
-  ];
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        const response = await gatewayClient.getDashboardData();
+        if (response.success && response.data) {
+          setStats(response.data.stats || []);
+          setTransactions(response.data.transactions || []);
+        }
+        
+        const profileResponse = await gatewayClient.getProfile();
+        if (profileResponse.success && profileResponse.data) {
+          setBusinessName(profileResponse.data.businessName || 'Apex Innovations LLC');
+        }
+      } catch (error) {
+        console.error('Error loading dashboard details:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const transactions = [
-    { time: "Today, 14:32 PM", customer: "John D.", initial: "JD", color: "bg-primary/20 text-primary", amount: "$45.00", reward: "$0.90", status: "Settled" },
-    { time: "Today, 13:15 PM", customer: "Sarah W.", initial: "SW", color: "bg-secondary/20 text-secondary-container", amount: "$12.50", reward: "$0.25", status: "Settled" },
-    { time: "Today, 11:05 AM", customer: "Mike R.", initial: "MR", color: "bg-error/20 text-error", amount: "$120.00", reward: "$2.40", status: "Settled" },
-    { time: "Yesterday, 18:45 PM", customer: "Anna L.", initial: "AL", color: "bg-primary/20 text-primary", amount: "$8.75", reward: "$0.17", status: "Settled" }
-  ];
+    loadDashboardData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background text-on-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <span className="material-symbols-outlined animate-spin text-4xl text-primary">sync</span>
+          <p className="font-body-md text-on-surface-variant">Loading Dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-on-background flex flex-col md:flex-row">
@@ -65,7 +62,7 @@ export default function Dashboard({ navigate }) {
           <div className="bg-white/70 backdrop-blur-md p-6 rounded-2xl border border-outline-variant/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm animate-fade-in">
             <div>
               <h2 className="font-headline-lg text-headline-lg font-bold text-on-background text-2xl md:text-3xl">
-                Welcome back, Apex Innovations LLC
+                Welcome back, {businessName}
               </h2>
               <p className="font-body-md text-body-md text-on-surface-variant mt-1">
                 Manage your store payments, reward analytics, and active campaigns all from one dashboard.

@@ -1,14 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MerchantSidebar from '../components/MerchantSidebar';
 import MerchantNavbar from '../components/MerchantNavbar';
 import MerchantBottomNav from '../components/MerchantBottomNav';
 import StatCard from '../components/StatCard';
+import { gatewayClient } from '../../api/gatewayClient';
 
 export default function PaymentQR({ navigate, showToast }) {
   const currentPath = '/merchant/payment-qr';
-  const merchantId = 'MM-9823-XA';
+  const [merchantId, setMerchantId] = useState('MM-9823-XA');
   const [copiedId, setCopiedId] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [stats, setStats] = useState([]);
+  const [recentTransactions, setRecentTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchQRDetails = async () => {
+      try {
+        const response = await gatewayClient.getDashboardData();
+        if (response.success && response.data) {
+          setMerchantId(response.data.merchantId || 'MM-9823-XA');
+          
+          const txs = response.data.transactions || [];
+          const mappedTxs = txs.map(tx => ({
+            date: tx.time.split(',')[0],
+            time: tx.time.split(',')[1] || '',
+            customer: tx.customer,
+            avatar: tx.initial,
+            avatarBg: tx.color,
+            amount: tx.amount,
+            reward: tx.reward,
+          }));
+          setRecentTransactions(mappedTxs);
+
+          const volumeVal = txs.reduce((acc, tx) => acc + parseFloat(tx.amount.replace('$', '')), 0);
+          setStats([
+            {
+              title: "Today's Scans",
+              value: `${txs.length} Scans`,
+              icon: "qr_code_scanner",
+              iconColorClass: "text-primary bg-primary/10",
+              borderClass: "border-l-primary",
+              trend: { text: "+12% from yesterday", type: "up" }
+            },
+            {
+              title: "Scan Volume",
+              value: `$${volumeVal.toFixed(2)}`,
+              icon: "payments",
+              iconColorClass: "text-tertiary bg-tertiary/10",
+              borderClass: "border-l-tertiary",
+              trend: { text: "+5% from yesterday", type: "up" }
+            }
+          ]);
+        }
+      } catch (error) {
+        console.error('Failed to load QR details:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchQRDetails();
+  }, []);
 
   const handleCopyId = () => {
     navigator.clipboard.writeText(merchantId);
@@ -24,32 +76,16 @@ export default function PaymentQR({ navigate, showToast }) {
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
-  const stats = [
-    {
-      title: "Today's Scans",
-      value: "42 Scans",
-      icon: "qr_code_scanner",
-      iconColorClass: "text-primary bg-primary/10",
-      borderClass: "border-l-primary",
-      trend: { text: "+12% from yesterday", type: "up" }
-    },
-    {
-      title: "Scan Volume",
-      value: "$1,240.50",
-      icon: "payments",
-      iconColorClass: "text-tertiary bg-tertiary/10",
-      borderClass: "border-l-tertiary",
-      trend: { text: "+5% from yesterday", type: "up" }
-    }
-  ];
-
-  const recentTransactions = [
-    { date: "Oct 24, 2023", time: "14:32 PM", customer: "John D.", avatar: "JD", avatarBg: "bg-primary/20 text-primary", amount: "$45.00", reward: "$0.90" },
-    { date: "Oct 24, 2023", time: "13:15 PM", customer: "Sarah W.", avatar: "SW", avatarBg: "bg-secondary/20 text-secondary-container", amount: "$12.50", reward: "$0.25" },
-    { date: "Oct 24, 2023", time: "11:05 AM", customer: "Mike R.", avatar: "MR", avatarBg: "bg-error/20 text-error", amount: "$120.00", reward: "$2.40" },
-    { date: "Oct 23, 2023", time: "18:45 PM", customer: "Anna L.", avatar: "AL", avatarBg: "bg-primary/20 text-primary", amount: "$8.75", reward: "$0.17" },
-    { date: "Oct 23, 2023", time: "15:20 PM", customer: "Guest User", avatar: "GU", avatarBg: "bg-outline/20 text-outline", amount: "$34.20", reward: "$0.68" }
-  ];
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background text-on-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <span className="material-symbols-outlined animate-spin text-4xl text-primary">sync</span>
+          <p className="font-body-md text-on-surface-variant">Loading QR Details...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-on-background flex flex-col md:flex-row">

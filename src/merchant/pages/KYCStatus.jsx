@@ -1,10 +1,40 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import MerchantSidebar from '../components/MerchantSidebar';
 import MerchantNavbar from '../components/MerchantNavbar';
 import MerchantBottomNav from '../components/MerchantBottomNav';
+import { gatewayClient } from '../../api/gatewayClient';
 
 export default function KYCStatus({ navigate, showToast }) {
   const currentPath = '/merchant/kyc-status';
+  const [status, setStatus] = useState('Verified');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const response = await gatewayClient.getProfile();
+        if (response.success && response.data) {
+          setStatus(response.data.status || 'Verified');
+        }
+      } catch (error) {
+        console.error('Failed to load KYC status:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStatus();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background text-on-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <span className="material-symbols-outlined animate-spin text-4xl text-primary">sync</span>
+          <p className="font-body-md text-on-surface-variant">Loading KYC Details...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-on-background flex flex-col md:flex-row">
@@ -32,14 +62,23 @@ export default function KYCStatus({ navigate, showToast }) {
                   <span className="material-symbols-outlined text-tertiary-container" style={{ fontVariationSettings: "'FILL' 1" }}>verified_user</span>
                   <span>KYC Status</span>
                 </h3>
-                <span className="bg-tertiary/10 text-tertiary font-label-sm text-xs px-3 py-1 rounded-full flex items-center gap-1 border border-tertiary/20 font-semibold">
-                  <span className="material-symbols-outlined text-xs">check_circle</span>
-                  <span>Verified</span>
+                <span className={`font-label-sm text-xs px-3 py-1 rounded-full flex items-center gap-1 border font-semibold ${
+                  status === 'Verified' 
+                    ? 'bg-tertiary/10 text-tertiary border-tertiary/20' 
+                    : 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20'
+                }`}>
+                  <span className="material-symbols-outlined text-xs">
+                    {status === 'Verified' ? 'check_circle' : 'hourglass_empty'}
+                  </span>
+                  <span>{status}</span>
                 </span>
               </div>
               
               <p className="font-body-sm text-body-sm text-on-surface-variant mb-6 leading-relaxed">
-                Your business identity has been verified. You have full access to all merchant features and high transaction limits.
+                {status === 'Verified' 
+                  ? 'Your business identity has been verified. You have full access to all merchant features and high transaction limits.'
+                  : 'Your compliance and KYC files are currently under review. Some features may be restricted until approval is completed.'
+                }
               </p>
 
               <div className="space-y-4 pt-4 border-t border-outline-variant/20">

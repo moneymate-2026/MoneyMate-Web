@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import MerchantSidebar from '../components/MerchantSidebar';
 import MerchantNavbar from '../components/MerchantNavbar';
 import MerchantBottomNav from '../components/MerchantBottomNav';
+import { gatewayClient } from '../../api/gatewayClient';
 
-export default function CreateOffer({ navigate }) {
+export default function CreateOffer({ navigate, showToast }) {
   const currentPath = '/merchant/create-offer';
   const [formData, setFormData] = useState({
     campaignName: '',
@@ -24,16 +25,21 @@ export default function CreateOffer({ navigate }) {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
+    try {
+      await gatewayClient.createCampaign(formData);
       setLoading(false);
       setLaunched(true);
+      if (showToast) showToast('Campaign launched successfully!', 'success');
       setTimeout(() => {
         navigate('/merchant/dashboard');
       }, 1500);
-    }, 1500);
+    } catch (error) {
+      setLoading(false);
+      if (showToast) showToast(error.message || 'Failed to launch campaign', 'error');
+    }
   };
 
   return (

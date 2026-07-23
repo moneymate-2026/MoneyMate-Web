@@ -1,18 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MerchantSidebar from '../components/MerchantSidebar';
 import MerchantNavbar from '../components/MerchantNavbar';
 import MerchantBottomNav from '../components/MerchantBottomNav';
+import { gatewayClient } from '../../api/gatewayClient';
 
 export default function Profile({ navigate, showToast }) {
   const currentPath = '/merchant/profile';
 
   const [formData, setFormData] = useState({
-    businessName: 'Apex Innovations LLC',
-    dbaName: 'Apex Tech',
-    address: '123 Innovation Drive, Tech District, CA 90210',
+    businessName: '',
+    dbaName: '',
+    address: '',
     businessType: 'Limited Liability Company (LLC)',
-    taxId: '123456789',
+    taxId: '',
+    ownerName: '',
+    email: '',
+    mobile: '',
   });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await gatewayClient.getProfile();
+        if (response.success && response.data) {
+          setFormData({
+            businessName: response.data.businessName || '',
+            dbaName: response.data.dbaName || '',
+            address: response.data.address || '',
+            businessType: response.data.businessType || 'Limited Liability Company (LLC)',
+            taxId: response.data.taxId || '',
+            ownerName: response.data.ownerName || '',
+            email: response.data.email || '',
+            mobile: response.data.mobile || '',
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -21,12 +51,32 @@ export default function Profile({ navigate, showToast }) {
     });
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    if (showToast) {
-      showToast('Business profile updated successfully!', 'success');
+    try {
+      const response = await gatewayClient.updateProfile(formData);
+      if (response.success) {
+        if (showToast) {
+          showToast('Business profile updated successfully!', 'success');
+        }
+      }
+    } catch (error) {
+      if (showToast) {
+        showToast(error.message || 'Failed to update profile', 'error');
+      }
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background text-on-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <span className="material-symbols-outlined animate-spin text-4xl text-primary">sync</span>
+          <p className="font-body-md text-on-surface-variant">Loading Profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-on-background flex flex-col md:flex-row">
@@ -147,11 +197,13 @@ export default function Profile({ navigate, showToast }) {
               <div className="flex items-center justify-between p-4 bg-surface-container-low rounded-xl border border-outline-variant/20">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg animate-float">
-                    JD
+                    {formData.ownerName ? formData.ownerName.split(' ').map(n => n[0]).join('').toUpperCase() : 'JD'}
                   </div>
                   <div>
-                    <p className="font-label-md text-label-md text-on-surface font-bold">John Doe</p>
-                    <p className="font-body-sm text-body-sm text-on-surface-variant">john.doe@apextech.com • (555) 123-4567</p>
+                    <p className="font-label-md text-label-md text-on-surface font-bold">{formData.ownerName || 'John Doe'}</p>
+                    <p className="font-body-sm text-body-sm text-on-surface-variant">
+                      {formData.email || 'john.doe@apextech.com'} • {formData.mobile || '(555) 123-4567'}
+                    </p>
                   </div>
                 </div>
                 <button 

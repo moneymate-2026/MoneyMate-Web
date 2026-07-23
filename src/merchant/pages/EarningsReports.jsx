@@ -1,16 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MerchantSidebar from '../components/MerchantSidebar';
 import MerchantNavbar from '../components/MerchantNavbar';
 import MerchantBottomNav from '../components/MerchantBottomNav';
+import { gatewayClient } from '../../api/gatewayClient';
 
 export default function EarningsReports({ navigate, showToast }) {
   const currentPath = '/merchant/earnings-reports';
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
-  const [balance, setBalance] = useState(4250.00);
+  const [balance, setBalance] = useState(0.00);
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [history, setHistory] = useState([]);
+  const [totalScans, setTotalScans] = useState(1204);
+  const [premiumPoints, setPremiumPoints] = useState(850);
+  const [loading, setLoading] = useState(true);
 
-  const handleRedeem = () => {
+  useEffect(() => {
+    const fetchEarningsData = async () => {
+      try {
+        const response = await gatewayClient.getDashboardData();
+        if (response.success && response.data) {
+          setBalance(response.data.balance || 0);
+          
+          const txs = response.data.transactions || [];
+          const mappedHistory = txs.map((tx, idx) => ({
+            title: tx.reward === '$2.40' ? 'Premium VIP Scan' : 'Storefront Scan Campaign',
+            id: `#QR-882${idx}`,
+            time: tx.time,
+            amount: parseFloat(tx.amount.replace('$', '')),
+            status: tx.status,
+            icon: tx.reward === '$2.40' ? 'star' : 'qr_code',
+            premium: tx.reward === '$2.40',
+          }));
+          setHistory(mappedHistory);
+
+          const customerStat = response.data.stats?.find(s => s.title === "Customers Rewarded");
+          if (customerStat) {
+            setTotalScans(parseInt(customerStat.value.replace(/,/g, '')) || 1204);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load earnings data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEarningsData();
+  }, []);
+
+  const handleRedeem = async () => {
     if (balance <= 0) {
       if (showToast) showToast('Available balance is $0.00. Earn more rewards to redeem!', 'error');
       return;
@@ -19,19 +57,17 @@ export default function EarningsReports({ navigate, showToast }) {
       if (showToast) showToast('Please check the confirmation box to authorize bank transfer.', 'info');
       return;
     }
-    if (showToast) {
-      showToast(`Successfully initiated redemption of $${balance.toFixed(2)}! Funds will settle in 1-2 business days.`, 'success');
+    try {
+      await gatewayClient.redeemBalance();
+      if (showToast) {
+        showToast(`Successfully initiated redemption of $${balance.toFixed(2)}! Funds will settle in 1-2 business days.`, 'success');
+      }
+      setBalance(0);
+      setIsConfirmed(false);
+    } catch (error) {
+      if (showToast) showToast(error.message || 'Failed to process bank transfer', 'error');
     }
-    setBalance(0);
-    setIsConfirmed(false);
   };
-
-  const history = [
-    { title: "Storefront Scan Campaign", id: "#QR-8821", time: "Today, 14:30", amount: 12.50, status: "Settled", icon: "qr_code" },
-    { title: "Premium VIP Scan", id: "#QR-8820", time: "Yesterday, 09:15", amount: 50.00, status: "Settled", icon: "star", premium: true },
-    { title: "Summer Promo Scan", id: "#QR-8819", time: "Oct 24, 16:45", amount: 5.00, status: "Pending", icon: "qr_code" },
-    { title: "Storefront Scan Campaign", id: "#QR-8818", time: "Oct 23, 11:20", amount: 12.50, status: "Settled", icon: "qr_code" }
-  ];
 
   const filteredHistory = history.filter((item) => {
     // Filter by search query
@@ -44,6 +80,17 @@ export default function EarningsReports({ navigate, showToast }) {
     if (activeFilter === 'This Month') return !item.time.includes('Oct 23');
     return true;
   });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background text-on-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <span className="material-symbols-outlined animate-spin text-4xl text-primary">sync</span>
+          <p className="font-body-md text-on-surface-variant">Loading Rewards Center...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-on-background flex flex-col md:flex-row">
@@ -117,14 +164,14 @@ export default function EarningsReports({ navigate, showToast }) {
                     <span className="material-symbols-outlined text-sm">qr_code_scanner</span>
                     <span className="font-body-sm text-body-sm">Total Scans</span>
                   </div>
-                  <span className="font-headline-md text-headline-md font-bold text-on-surface">1,204</span>
+                  <span className="font-headline-md text-headline-md font-bold text-on-surface">{totalScans.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2 text-on-surface-variant">
                     <span className="material-symbols-outlined text-sm">star_rate</span>
                     <span className="font-body-sm text-body-sm">Premium Points</span>
                   </div>
-                  <span className="font-headline-md text-headline-md font-bold text-secondary">850</span>
+                  <span className="font-headline-md text-headline-md font-bold text-secondary">{premiumPoints.toLocaleString()}</span>
                 </div>
               </div>
             </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { gatewayClient } from '../../api/gatewayClient';
 
 export default function Login({ navigate, showToast }) {
   const [formData, setFormData] = useState({
@@ -16,14 +17,18 @@ export default function Login({ navigate, showToast }) {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate API sign in
-    setTimeout(() => {
+    try {
+      await gatewayClient.login(formData.email, formData.password);
       setLoading(false);
+      if (showToast) showToast('Logged in successfully!', 'success');
       navigate('/merchant/dashboard');
-    }, 1000);
+    } catch (error) {
+      setLoading(false);
+      if (showToast) showToast(error.message || 'Login failed', 'error');
+    }
   };
 
   return (

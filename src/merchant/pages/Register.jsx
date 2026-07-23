@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { gatewayClient } from '../../api/gatewayClient';
 
 export default function Register({ navigate, showToast }) {
   const [step, setStep] = useState(1);
@@ -50,7 +51,7 @@ export default function Register({ navigate, showToast }) {
     setStep((prev) => Math.max(prev - 1, 1));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.aadharNumber.length !== 12) {
       if (showToast) showToast("Please enter a valid 12-digit Aadhaar Card Number!", "error");
@@ -64,8 +65,14 @@ export default function Register({ navigate, showToast }) {
       if (showToast) showToast("Please upload your Shop License document!", "error");
       return;
     }
-    // Simulate successful registration and redirect to compliance review status
-    navigate('/merchant/verification-pending');
+    
+    try {
+      await gatewayClient.register(formData);
+      if (showToast) showToast('Registration submitted successfully!', 'success');
+      navigate('/merchant/verification-pending');
+    } catch (error) {
+      if (showToast) showToast(error.message || 'Registration failed', 'error');
+    }
   };
 
   return (
