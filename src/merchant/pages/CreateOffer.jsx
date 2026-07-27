@@ -117,33 +117,18 @@ export default function CreateOffer({ navigate, showToast }) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-1">
-                  <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Minimum Bill Purchase ($)</label>
-                  <input 
-                    type="number" 
-                    name="minPurchase"
-                    value={formData.minPurchase}
-                    onChange={handleChange}
-                    required
-                    min="0"
-                    placeholder="e.g. 10"
-                    className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Target Audience</label>
-                  <select 
-                    name="targetAudience"
-                    value={formData.targetAudience}
-                    onChange={handleChange}
-                    className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all appearance-none"
-                  >
-                    <option>All Customers</option>
-                    <option>VIP Members</option>
-                    <option>First-Time Scanners Only</option>
-                  </select>
-                </div>
+              <div className="space-y-1">
+                <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Minimum Bill Purchase ($)</label>
+                <input 
+                  type="number" 
+                  name="minPurchase"
+                  value={formData.minPurchase}
+                  onChange={handleChange}
+                  required
+                  min="0"
+                  placeholder="e.g. 10"
+                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

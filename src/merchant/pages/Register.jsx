@@ -6,7 +6,7 @@ export default function Register({ navigate, showToast }) {
   const [formData, setFormData] = useState({
     businessName: '',
     dbaName: '',
-    businessType: 'Limited Liability Company (LLC)',
+    businessType: '',
     taxId: '',
     address: '',
     ownerName: '',
@@ -169,16 +169,15 @@ export default function Register({ navigate, showToast }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-1">
                 <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Business Type</label>
-                <select 
+                <input 
+                  type="text"
                   name="businessType"
                   value={formData.businessType}
                   onChange={handleChange}
-                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all appearance-none"
-                >
-                  <option>Limited Liability Company (LLC)</option>
-                  <option>Corporation</option>
-                  <option>Sole Proprietorship</option>
-                </select>
+                  required
+                  placeholder="e.g. Retail, Software, etc."
+                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                />
               </div>
               <div className="space-y-1">
                 <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Tax ID / EIN</label>

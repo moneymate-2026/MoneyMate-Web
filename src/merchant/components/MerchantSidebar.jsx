@@ -49,15 +49,7 @@ export default function MerchantSidebar({ currentPath, navigate }) {
           );
         })}
       </div>
-      <div className="px-4 mt-auto">
-        <button 
-          onClick={() => navigate('/merchant/create-offer')}
-          className="w-full bg-primary text-on-primary rounded-lg py-3 font-label-md text-label-md shadow-sm hover:shadow-md transition-shadow"
-        >
-          New Campaign
-        </button>
-      </div>
-      <div className="flex flex-col gap-2 px-2 mt-4 pt-4 border-t border-outline-variant/30">
+      <div className="flex flex-col gap-2 px-2 mt-auto pt-4 border-t border-outline-variant/30">
         <button 
           onClick={() => navigate('/merchant/profile')}
           className="text-on-surface-variant flex items-center gap-3 py-3 px-4 rounded-xl hover:bg-surface-variant transition-colors duration-200 ease-in-out w-full text-left"

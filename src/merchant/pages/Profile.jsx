@@ -16,6 +16,7 @@ export default function Profile({ navigate, showToast }) {
     ownerName: '',
     email: '',
     mobile: '',
+    profileImage: '',
   });
   const [loading, setLoading] = useState(true);
 
@@ -33,6 +34,7 @@ export default function Profile({ navigate, showToast }) {
             ownerName: response.data.ownerName || '',
             email: response.data.email || '',
             mobile: response.data.mobile || '',
+            profileImage: response.data.profileImage || '',
           });
         }
       } catch (error) {
@@ -106,6 +108,40 @@ export default function Profile({ navigate, showToast }) {
               </h3>
 
               <form onSubmit={handleSave} className="space-y-5">
+                {/* Profile Image Upload */}
+                <div className="flex items-center gap-6 mb-8">
+                  <div className="relative w-24 h-24 rounded-full bg-surface-container-high border-2 border-outline-variant/30 flex items-center justify-center overflow-hidden shrink-0 group">
+                    {formData.profileImage ? (
+                      <img src={formData.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="material-symbols-outlined text-4xl text-on-surface-variant/50">storefront</span>
+                    )}
+                    <label className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity text-white">
+                      <span className="material-symbols-outlined text-2xl">photo_camera</span>
+                      <span className="text-[10px] font-medium mt-1">Change</span>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setFormData({ ...formData, profileImage: reader.result });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <div>
+                    <h4 className="font-label-md text-label-md text-on-surface font-bold">Business Logo</h4>
+                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-1 max-w-xs">Upload a clear, high-quality logo to represent your business on the platform. Recommended size: 256x256px.</p>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-1">
                     <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Legal Business Name</label>
