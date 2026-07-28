@@ -1,6 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { gatewayClient } from '../../api/gatewayClient';
 
 export default function MerchantNavbar({ currentPath, navigate }) {
+  const defaultAvatar = "https://lh3.googleusercontent.com/aida-public/AB6AXuDq4xO_uw4wbTgmKt6J4LUnwjLjFTBJAjuoAVVAYun-29iUpkYk-p41vg4a8VnMyoMkkWrUEbY7GXzE-7chiP8LCFoZMtprtB0ISz03hoTtC4eOurjfn3wwRLpV2Ddrdl6QO9MPA4YKsjRlTgI8n2yh4s7dHoRQRR5qB-QXUz0FLGKcO2kMwc13vppnqC-Td_Km0ghmpA_6MV3T68cMXMvDcPAF0tCErk8TzNmsNh2ioNEDIe_ePaUT";
+  const [profileImage, setProfileImage] = useState(defaultAvatar);
+
+  useEffect(() => {
+    const loadProfileImage = async () => {
+      try {
+        const response = await gatewayClient.getProfile();
+        if (response && response.success && response.data && response.data.profileImage) {
+          setProfileImage(response.data.profileImage);
+        } else {
+          setProfileImage(defaultAvatar);
+        }
+      } catch (error) {
+        console.error('Failed to load profile image in navbar:', error);
+      }
+    };
+
+    loadProfileImage();
+
+    const handleProfileUpdated = (e) => {
+      if (e.detail && e.detail.profileImage !== undefined) {
+        setProfileImage(e.detail.profileImage || defaultAvatar);
+      } else {
+        loadProfileImage();
+      }
+    };
+
+    const handleProfilePreview = (e) => {
+      if (e.detail) {
+        setProfileImage(e.detail);
+      }
+    };
+
+    window.addEventListener('profileUpdated', handleProfileUpdated);
+    window.addEventListener('profileImagePreview', handleProfilePreview);
+    window.addEventListener('storage', loadProfileImage);
+
+    return () => {
+      window.removeEventListener('profileUpdated', handleProfileUpdated);
+      window.removeEventListener('profileImagePreview', handleProfilePreview);
+      window.removeEventListener('storage', loadProfileImage);
+    };
+  }, []);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([
     { id: 1, text: "New payment of $45.00 received from John D. via Storefront QR.", time: "5m ago", read: false, icon: "payments" },
@@ -109,7 +153,7 @@ export default function MerchantNavbar({ currentPath, navigate }) {
             alt="Merchant Profile Avatar" 
             className="w-10 h-10 rounded-full border-2 border-outline-variant/30 object-cover cursor-pointer hover:border-primary transition-all duration-300" 
             onClick={() => navigate('/merchant/profile')}
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDq4xO_uw4wbTgmKt6J4LUnwjLjFTBJAjuoAVVAYun-29iUpkYk-p41vg4a8VnMyoMkkWrUEbY7GXzE-7chiP8LCFoZMtprtB0ISz03hoTtC4eOurjfn3wwRLpV2Ddrdl6QO9MPA4YKsjRlTgI8n2yh4s7dHoRQRR5qB-QXUz0FLGKcO2kMwc13vppnqC-Td_Km0ghmpA_6MV3T68cMXMvDcPAF0tCErk8TzNmsNh2ioNEDIe_ePaUT"
+            src={profileImage}
           />
         </div>
       </div>
@@ -136,7 +180,7 @@ export default function MerchantNavbar({ currentPath, navigate }) {
             <img 
               className="w-full h-full object-cover" 
               alt="Avatar" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjLoI0hHygLHHPrXP3DObiecpXRgtu46Cb-Ua0VJtolov94fxaw9srNd23HD_oaxEzjYLR1-WNmYsQ42JMu-RF1MmXnUwNI1BT-0HPswN7RigCBw-WTJZv-a8PyhNg5tEeJj6iqt-e2QWJhYNERTvNPa1gYbXtjKtcQEmDfnUak6qqddSS7aOMdYDvWP7K-vD3g_-r2MseQOFdIJYggcbvu1I_EU5VRLX6KKfDnr6DBGWbTppjgrja"
+              src={profileImage}
             />
           </div>
 

@@ -11,7 +11,10 @@ import {
   MessageSquare, 
   Key, 
   Settings,
-  Settings2
+  Settings2,
+  Tag,
+  QrCode,
+  Crown
 } from "lucide-react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -26,6 +29,9 @@ const navItems = [
   { path: "/admin/users", icon: Users, label: "User Management" },
   { path: "/admin/merchants", icon: Store, label: "Merchant Management" },
   { path: "/admin/kyc", icon: UserCheck, label: "KYC Verification" },
+  { path: "/admin/merchant-campaigns", icon: Tag, label: "Merchant Campaigns" },
+  { path: "/admin/store-qrs", icon: QrCode, label: "Store QR Directory" },
+  { path: "/admin/merchant-plans", icon: Crown, label: "Subscription Plans" },
   { path: "/admin/transactions", icon: Activity, label: "Transactions" },
   { path: "/admin/reports", icon: FileText, label: "Reports & Compliance" },
   { path: "/admin/audit", icon: ShieldAlert, label: "Audit Logs" },

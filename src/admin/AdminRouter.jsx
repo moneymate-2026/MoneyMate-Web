@@ -5,6 +5,9 @@ import Wallets from "./pages/Wallets";
 import UserManagement from "./pages/UserManagement";
 import MerchantManagement from "./pages/MerchantManagement";
 import KYCVerification from "./pages/KYCVerification";
+import MerchantCampaigns from "./pages/MerchantCampaigns";
+import StoreQRs from "./pages/StoreQRs";
+import MerchantPlans from "./pages/MerchantPlans";
 import Transactions from "./pages/Transactions";
 import Reports from "./pages/Reports";
 import AuditLogs from "./pages/AuditLogs";
@@ -22,6 +25,9 @@ export default function AdminRouter() {
         <Route path="users" element={<UserManagement />} />
         <Route path="merchants" element={<MerchantManagement />} />
         <Route path="kyc" element={<KYCVerification />} />
+        <Route path="merchant-campaigns" element={<MerchantCampaigns />} />
+        <Route path="store-qrs" element={<StoreQRs />} />
+        <Route path="merchant-plans" element={<MerchantPlans />} />
         <Route path="transactions" element={<Transactions />} />
         <Route path="reports" element={<Reports />} />
         <Route path="audit" element={<AuditLogs />} />

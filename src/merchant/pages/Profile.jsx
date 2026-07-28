@@ -129,6 +129,9 @@ export default function Profile({ navigate, showToast }) {
                             const reader = new FileReader();
                             reader.onloadend = () => {
                               setFormData({ ...formData, profileImage: reader.result });
+                              if (typeof window !== 'undefined') {
+                                window.dispatchEvent(new CustomEvent('profileImagePreview', { detail: reader.result }));
+                              }
                             };
                             reader.readAsDataURL(file);
                           }
@@ -208,7 +211,12 @@ export default function Profile({ navigate, showToast }) {
                 <div className="pt-4 flex justify-end gap-3 border-t border-outline-variant/30">
                   <button 
                     type="button"
-                    onClick={() => navigate('/merchant/dashboard')}
+                    onClick={() => {
+                      if (typeof window !== 'undefined') {
+                        window.dispatchEvent(new CustomEvent('profileUpdated', { detail: {} }));
+                      }
+                      navigate('/merchant/dashboard');
+                    }}
                     className="px-6 py-2.5 rounded-lg font-label-md text-label-md text-primary hover:bg-primary/5 transition-colors"
                   >
                     Cancel

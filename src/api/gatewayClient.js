@@ -16,6 +16,7 @@ const getMockDb = () => {
       email: 'owner@business.com',
       mobile: '(555) 123-4567',
       status: 'Verified',
+      profileImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDq4xO_uw4wbTgmKt6J4LUnwjLjFTBJAjuoAVVAYun-29iUpkYk-p41vg4a8VnMyoMkkWrUEbY7GXzE-7chiP8LCFoZMtprtB0ISz03hoTtC4eOurjfn3wwRLpV2Ddrdl6QO9MPA4YKsjRlTgI8n2yh4s7dHoRQRR5qB-QXUz0FLGKcO2kMwc13vppnqC-Td_Km0ghmpA_6MV3T68cMXMvDcPAF0tCErk8TzNmsNh2ioNEDIe_ePaUT',
     },
     campaigns: [
       { id: 'c1', name: 'Weekend Special', type: 'Double Cashback (4%)', value: '4', minPurchase: '10', audience: 'All Customers', status: 'Active' },
@@ -134,6 +135,9 @@ const handleMockFallback = async (url, options) => {
       const data = JSON.parse(options.body || '{}');
       db.profile = { ...db.profile, ...data };
       saveMockDb(db);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('profileUpdated', { detail: db.profile }));
+      }
       return { success: true, message: 'Profile updated successfully', data: db.profile };
     }
   }

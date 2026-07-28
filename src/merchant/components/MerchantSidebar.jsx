@@ -1,5 +1,6 @@
 import React from 'react';
 
+
 export default function MerchantSidebar({ currentPath, navigate }) {
   const menuItems = [
     { name: 'Dashboard', icon: 'dashboard', path: '/merchant/dashboard' },
@@ -12,17 +13,15 @@ export default function MerchantSidebar({ currentPath, navigate }) {
 
   return (
     <nav className="h-screen w-64 fixed left-0 top-0 hidden md:flex flex-col bg-surface-container-low shadow-md z-40 transition-colors duration-200 ease-in-out py-6 border-r border-outline-variant/30">
-      <div className="px-6 mb-8 flex flex-col items-start gap-2">
-        <div className="w-12 h-12 rounded-full overflow-hidden bg-surface-variant flex items-center justify-center">
-          <img 
-            className="w-full h-full object-cover" 
-            alt="Merchant Logo" 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVqP3a9j873OMX6RSHiZcCoFbWqwx7CFdQH_frKYiUILK7cR22Nofevt0jIn7EntPoBUUFujwtZ95tDepYWjA5SnYub2vyhl0sqtSXElOmkCPgzbtCzoQdMD5jQBuEtNL6cJncxdbYdE9l_7hFekaRvnt_WDG2WC4ZQQcCfi3LALJ91LkVZUKX3JehEF9hHXA70uKhw1FGaon1f5P8Q3iDOIWDGnY-_bNbv_QTroAtC1EFRB3X0JWd"
-          />
-        </div>
-        <div>
-          <h1 className="font-headline-md text-headline-md text-primary font-bold">MoneyMate Merchant</h1>
-          <p className="font-label-sm text-label-sm text-on-surface-variant">Verified Partner</p>
+      <div className="px-6 mb-8 flex flex-col items-start gap-1">
+        <div className="flex items-center gap-2.5">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-container text-on-primary flex items-center justify-center shadow-sm shrink-0">
+            <span className="material-symbols-outlined text-2xl">storefront</span>
+          </div>
+          <div>
+            <h1 className="font-headline-md text-headline-md text-primary font-bold leading-tight">MoneyMate Merchant</h1>
+            <p className="font-label-sm text-label-sm text-on-surface-variant">Verified Partner</p>
+          </div>
         </div>
       </div>
       <div className="flex flex-col h-full gap-2 px-2 flex-1">
