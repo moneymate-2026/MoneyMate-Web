@@ -91,7 +91,7 @@ export default function UserManagement() {
         </div>
         
         <div className="flex items-center gap-3">
-          <button className="px-4 py-2 bg-white border border-admin-outline-variant text-admin-on-surface rounded-lg font-semibold shadow-sm hover:bg-admin-surface-container-low transition-colors flex items-center gap-2">
+          <button className="px-4 py-2 bg-admin-surface-container border border-admin-outline-variant text-admin-on-surface rounded-lg font-semibold shadow-sm hover:bg-admin-surface-container-low transition-colors flex items-center gap-2">
             <Filter className="w-4 h-4" /> Filters
           </button>
           <button className="px-4 py-2 bg-admin-primary text-admin-on-primary rounded-lg font-semibold shadow-md shadow-admin-primary/20 hover:bg-admin-primary-container transition-all flex items-center gap-2">
@@ -100,7 +100,7 @@ export default function UserManagement() {
         </div>
       </div>
 
-      <div className="bg-white border border-admin-outline-variant rounded-xl shadow-sm overflow-hidden flex flex-col">
+      <div className="bg-admin-surface-container border border-admin-outline-variant rounded-xl shadow-sm overflow-hidden flex flex-col">
         <div className="p-4 border-b border-admin-outline-variant flex items-center justify-between gap-4">
           <div className="flex-1 max-w-md flex items-center gap-2 px-3 py-2 rounded-lg border border-admin-outline-variant/60 focus-within:border-admin-primary focus-within:ring-2 focus-within:ring-admin-primary/20 transition-all bg-admin-surface-container-lowest">
             <Search className="w-4 h-4 text-admin-on-surface-variant" />

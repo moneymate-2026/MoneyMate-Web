@@ -63,19 +63,16 @@ export default function MerchantNavbar({ currentPath, navigate }) {
   };
 
   return (
-    <header className="bg-surface/80 backdrop-blur-xl shadow-sm border-b border-outline-variant/30 sticky top-0 z-40 w-full">
+    <header className="bg-surface/80 backdrop-blur-xl shadow-sm border-b border-outline-variant sticky top-0 z-40 w-full h-[72px]">
       {/* Desktop view */}
-      <div className="hidden md:flex justify-between items-center px-8 py-4 relative">
-        <div className="flex items-center gap-8">
-          <span 
-            onClick={() => navigate('/merchant/dashboard')}
-            className="font-display-lg text-headline-md font-bold text-primary cursor-pointer select-none"
-          >
-            MoneyMate
-          </span>
-          <span className="font-label-md text-label-md text-on-surface-variant font-medium bg-surface-container px-3.5 py-1.5 rounded-full border border-outline-variant/20">
-            Merchant Portal
-          </span>
+      <div className="hidden md:flex justify-between items-center px-8 h-full relative">
+        <div className="flex items-center flex-1 max-w-md relative group">
+          <span className="material-symbols-outlined absolute left-3.5 text-on-surface-variant/50 text-[20px] group-focus-within:text-primary transition-colors">search</span>
+          <input 
+            type="text" 
+            placeholder="Search transactions, offers, or settings..." 
+            className="w-full bg-surface-container-low hover:bg-surface-container border border-outline-variant/40 text-on-surface font-body-sm pl-11 pr-4 py-2.5 rounded-xl focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-on-surface-variant/50 shadow-sm"
+          />
         </div>
         <div className="flex items-center gap-4">
           <button 
@@ -107,7 +104,7 @@ export default function MerchantNavbar({ currentPath, navigate }) {
 
             {/* Notification Dropdown Panel */}
             {showNotifications && (
-              <div className="absolute right-0 top-12 w-80 bg-white rounded-2xl border border-outline-variant/30 shadow-2xl z-50 p-4 animate-scale-up">
+              <div className="absolute right-0 top-12 w-80 bg-surface-container rounded-2xl border border-outline-variant/30 shadow-2xl z-50 p-4 animate-scale-up">
                 <div className="flex justify-between items-center pb-2.5 border-b border-outline-variant/20 mb-2.5">
                   <h4 className="font-label-md text-label-md text-on-background font-bold">Notifications</h4>
                   {unreadCount > 0 && (
@@ -159,13 +156,18 @@ export default function MerchantNavbar({ currentPath, navigate }) {
       </div>
 
       {/* Mobile view */}
-      <div className="flex md:hidden justify-between items-center px-6 py-4 relative">
-        <span 
+      <div className="flex md:hidden justify-between items-center px-6 h-full relative">
+        <div 
           onClick={() => navigate('/merchant/dashboard')}
-          className="font-display-lg text-headline-md font-bold text-primary cursor-pointer select-none"
+          className="flex items-center gap-2 cursor-pointer select-none"
         >
-          MoneyMate
-        </span>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-lg bg-gradient-to-r from-[#a87ffb] to-[#00d0ff] text-white shadow-lg shadow-primary/20">
+            M
+          </div>
+          <span className="font-display-lg text-headline-md font-bold text-on-surface hidden sm:block">
+            MoneyMate
+          </span>
+        </div>
         <div className="flex items-center gap-4">
           <button onClick={() => setShowNotifications(!showNotifications)} className="text-primary relative">
             <span className="material-symbols-outlined">notifications</span>
@@ -186,7 +188,7 @@ export default function MerchantNavbar({ currentPath, navigate }) {
 
           {/* Mobile notification dropdown */}
           {showNotifications && (
-            <div className="absolute right-6 top-14 w-72 bg-white rounded-2xl border border-outline-variant/30 shadow-2xl z-50 p-4 animate-scale-up">
+            <div className="absolute right-6 top-14 w-72 bg-surface-container rounded-2xl border border-outline-variant/30 shadow-2xl z-50 p-4 animate-scale-up">
               <div className="flex justify-between items-center pb-2.5 border-b border-outline-variant/20 mb-2.5">
                 <h4 className="font-label-md text-label-md text-on-background font-bold">Notifications</h4>
                 {unreadCount > 0 && (

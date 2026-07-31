@@ -73,7 +73,7 @@ export default function MerchantCampaigns() {
     { 
       header: "Campaign ID", 
       render: (row) => (
-        <span className="font-mono text-xs font-bold bg-slate-100 px-2.5 py-1 rounded text-slate-700">
+        <span className="font-mono text-xs font-bold bg-admin-surface-container-highest px-2.5 py-1 rounded text-admin-on-surface">
           {row.id}
         </span>
       )
@@ -196,7 +196,7 @@ export default function MerchantCampaigns() {
               className={`px-3 py-1.5 rounded-xl transition-all ${
                 statusFilter === status 
                   ? "bg-admin-primary text-white shadow-sm" 
-                  : "bg-white border border-admin-outline-variant text-admin-on-surface-variant hover:bg-admin-surface-container-low"
+                  : "bg-admin-surface-container border border-admin-outline-variant text-admin-on-surface-variant hover:bg-admin-surface-container-low"
               }`}
             >
               {status} ({status === "All" ? campaigns.length : campaigns.filter(c => c.status === status).length})
@@ -214,7 +214,7 @@ export default function MerchantCampaigns() {
       </div>
 
       {/* Search Bar */}
-      <div className="bg-white border border-admin-outline-variant rounded-xl p-4 flex items-center gap-3">
+      <div className="bg-admin-surface-container border border-admin-outline-variant rounded-xl p-4 flex items-center gap-3">
         <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg border border-admin-outline-variant/60 focus-within:border-admin-primary focus-within:ring-2 focus-within:ring-admin-primary/20 transition-all bg-admin-surface-container-lowest">
           <Search className="w-4 h-4 text-admin-on-surface-variant" />
           <input 
@@ -233,7 +233,7 @@ export default function MerchantCampaigns() {
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-admin-outline-variant rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-admin-surface-container border border-admin-outline-variant rounded-2xl shadow-sm overflow-hidden">
         {loading ? (
           <div className="p-16 flex flex-col items-center justify-center text-admin-on-surface-variant">
             <div className="w-9 h-9 border-4 border-admin-outline-variant border-t-admin-primary rounded-full animate-spin mb-4"></div>

@@ -8,17 +8,17 @@ function cn(...inputs) {
 export default function DataTable({ columns, data, className, maxHeight = "520px", stickyHeader = true }) {
   return (
     <div 
-      className={cn("w-full overflow-y-auto border border-admin-outline-variant rounded-xl bg-white shadow-sm relative custom-scrollbar", className)}
+      className={cn("w-full overflow-y-auto border border-admin-outline-variant rounded-xl bg-admin-surface-container shadow-lg relative custom-scrollbar", className)}
       style={maxHeight ? { maxHeight } : undefined}
     >
       <table className="w-full text-sm text-left table-auto">
         <thead className={cn(
-          "text-xs text-admin-on-surface-variant uppercase bg-admin-surface-container-low border-b border-admin-outline-variant",
-          stickyHeader && "sticky top-0 z-10 shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
+          "text-[11px] font-bold text-admin-on-surface-variant uppercase bg-admin-surface-container-low border-b border-admin-outline-variant tracking-wider",
+          stickyHeader && "sticky top-0 z-10 shadow-md"
         )}>
           <tr>
             {columns.map((col, i) => (
-              <th key={i} className="px-3.5 py-3 font-semibold tracking-wider bg-admin-surface-container-low text-left">
+              <th key={i} className="px-4 py-3 bg-admin-surface-container-low text-left whitespace-nowrap">
                 {col.header}
               </th>
             ))}
@@ -26,7 +26,7 @@ export default function DataTable({ columns, data, className, maxHeight = "520px
         </thead>
         <tbody className="divide-y divide-admin-outline-variant/60">
           {data.map((row, rowIndex) => (
-            <tr key={rowIndex} className="hover:bg-admin-surface/50 transition-colors">
+            <tr key={rowIndex} className="hover:bg-admin-surface-container-high/40 transition-colors">
               {columns.map((col, colIndex) => (
                 <td key={colIndex} className="px-3.5 py-3 text-admin-on-surface align-middle">
                   {col.accessor ? row[col.accessor] : col.render ? col.render(row) : null}

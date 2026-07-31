@@ -15,10 +15,12 @@ import ChatSupport from "./pages/ChatSupport";
 import RBAC from "./pages/RBAC";
 import WebConfig from "./pages/WebConfig";
 import Settings from "./pages/Settings";
+import AdminLogin from "./pages/AdminLogin";
 
 export default function AdminRouter() {
   return (
     <Routes>
+      <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<Overview />} />
         <Route path="wallets" element={<Wallets />} />

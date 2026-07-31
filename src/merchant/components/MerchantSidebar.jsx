@@ -1,69 +1,96 @@
 import React from 'react';
+import { NavLink } from "react-router-dom";
+import { 
+  LayoutDashboard, 
+  Wallet, 
+  Tag, 
+  QrCode, 
+  Crown, 
+  UserCheck, 
+  Settings, 
+  LogOut 
+} from "lucide-react";
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
+function cn(...inputs) {
+  return twMerge(clsx(inputs));
+}
 
 export default function MerchantSidebar({ currentPath, navigate }) {
   const menuItems = [
-    { name: 'Dashboard', icon: 'dashboard', path: '/merchant/dashboard' },
-    { name: 'Rewards', icon: 'workspace_premium', path: '/merchant/earnings-reports' },
-    { name: 'Offers', icon: 'local_offer', path: '/merchant/create-offer' },
-    { name: 'QR Manager', icon: 'qr_code_2', path: '/merchant/payment-qr' },
-    { name: 'Subscriptions', icon: 'card_membership', path: '/merchant/choose-plan' },
-    { name: 'KYC Status', icon: 'how_to_reg', path: '/merchant/kyc-status' },
+    { name: 'Dashboard', icon: LayoutDashboard, path: '/merchant/dashboard' },
+    { name: 'Rewards', icon: Wallet, path: '/merchant/earnings-reports' },
+    { name: 'Offers', icon: Tag, path: '/merchant/create-offer' },
+    { name: 'QR Manager', icon: QrCode, path: '/merchant/payment-qr' },
+    { name: 'Subscriptions', icon: Crown, path: '/merchant/choose-plan' },
+    { name: 'KYC Status', icon: UserCheck, path: '/merchant/kyc-status' },
   ];
 
   return (
-    <nav className="h-screen w-64 fixed left-0 top-0 hidden md:flex flex-col bg-surface-container-low shadow-md z-40 transition-colors duration-200 ease-in-out py-6 border-r border-outline-variant/30">
-      <div className="px-6 mb-8 flex flex-col items-start gap-1">
-        <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-container text-on-primary flex items-center justify-center shadow-sm shrink-0">
-            <span className="material-symbols-outlined text-2xl">storefront</span>
-          </div>
-          <div>
-            <h1 className="font-headline-md text-headline-md text-primary font-bold leading-tight">MoneyMate Merchant</h1>
-            <p className="font-label-sm text-label-sm text-on-surface-variant">Verified Partner</p>
+    <div className="w-[280px] flex-shrink-0 bg-surface-container border-r border-outline-variant h-screen hidden md:flex flex-col overflow-hidden shadow-[4px_0_24px_rgba(0,0,0,0.2)] fixed left-0 top-0 z-40 transition-colors duration-200">
+      <div className="h-[72px] flex items-center px-6 border-b border-outline-variant shrink-0 gap-3">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-lg bg-gradient-to-r from-[#a87ffb] to-[#00d0ff] text-white shadow-lg shadow-primary/20">
+          M
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-on-surface tracking-tight leading-tight">MoneyMate</h1>
+          <p className="text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Merchant</p>
+        </div>
+      </div>
+      
+      <div className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-6 custom-scrollbar">
+        <div className="flex flex-col gap-2">
+          <h3 className="text-[12px] font-bold text-on-surface-variant uppercase tracking-[0.15em] px-2 mb-1">
+            Menu
+          </h3>
+          <div className="flex flex-col gap-1">
+            {menuItems.map((item) => {
+              const isActive = currentPath === item.path;
+              return (
+                <button
+                  key={item.name}
+                  onClick={() => navigate(item.path)}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 relative group w-full text-left",
+                    isActive 
+                      ? "bg-primary/10 text-primary font-bold" 
+                      : "text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface"
+                  )}
+                >
+                  {isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full shadow-[0_0_8px_rgba(139,61,255,0.6)]" />
+                  )}
+                  <item.icon 
+                    className={cn("w-[22px] h-[22px] flex-shrink-0 transition-colors", isActive ? "text-primary" : "text-on-surface-variant group-hover:text-on-surface")} 
+                    strokeWidth={isActive ? 2.5 : 2.25} 
+                  />
+                  {item.name}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
-      <div className="flex flex-col h-full gap-2 px-2 flex-1">
-        {menuItems.map((item) => {
-          const isActive = currentPath === item.path;
-          return (
-            <button
-              key={item.name}
-              onClick={() => navigate(item.path)}
-              className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-colors duration-200 ease-in-out w-full text-left ${
-                isActive
-                  ? 'bg-primary-container text-on-primary-container font-bold'
-                  : 'text-on-surface-variant hover:bg-surface-variant'
-              }`}
-            >
-              <span 
-                className="material-symbols-outlined" 
-                style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
-              >
-                {item.icon}
-              </span>
-              <span className="font-label-md text-label-md">{item.name}</span>
-            </button>
-          );
-        })}
+      
+      <div className="p-4 border-t border-outline-variant mt-auto">
+        <div className="flex flex-col gap-1">
+          <button 
+            onClick={() => navigate('/merchant/profile')}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 w-full text-left"
+          >
+            <Settings className="w-[22px] h-[22px] flex-shrink-0 text-on-surface-variant" strokeWidth={2.25} />
+            Settings
+          </button>
+          <button 
+            onClick={() => navigate('/merchant/welcome')}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium text-error hover:bg-error/10 transition-all duration-200 w-full text-left"
+          >
+            <LogOut className="w-[22px] h-[22px] flex-shrink-0" strokeWidth={2.25} />
+            Log Out
+          </button>
+        </div>
       </div>
-      <div className="flex flex-col gap-2 px-2 mt-auto pt-4 border-t border-outline-variant/30">
-        <button 
-          onClick={() => navigate('/merchant/profile')}
-          className="text-on-surface-variant flex items-center gap-3 py-3 px-4 rounded-xl hover:bg-surface-variant transition-colors duration-200 ease-in-out w-full text-left"
-        >
-          <span className="material-symbols-outlined">settings</span>
-          <span className="font-label-md text-label-md">Settings</span>
-        </button>
-        <button 
-          onClick={() => navigate('/merchant/welcome')}
-          className="text-on-surface-variant flex items-center gap-3 py-3 px-4 rounded-xl hover:bg-surface-variant transition-colors duration-200 ease-in-out w-full text-left"
-        >
-          <span className="material-symbols-outlined">logout</span>
-          <span className="font-label-md text-label-md">Log Out</span>
-        </button>
-      </div>
-    </nav>
+    </div>
   );
 }

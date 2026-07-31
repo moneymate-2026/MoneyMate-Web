@@ -93,7 +93,7 @@ export default function PaymentQR({ navigate, showToast }) {
       <MerchantSidebar currentPath={currentPath} navigate={navigate} />
 
       {/* Main Container */}
-      <div className="flex-grow md:ml-64 flex flex-col">
+      <div className="flex-grow md:ml-[280px] flex flex-col">
         {/* Top Navbar */}
         <MerchantNavbar currentPath={currentPath} navigate={navigate} />
 
@@ -110,20 +110,20 @@ export default function PaymentQR({ navigate, showToast }) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* QR Card (Left Side) */}
             <div className="lg:col-span-5 flex flex-col gap-6 animate-scale-up">
-              <div className="bg-white rounded-[24px] p-8 flex flex-col items-center justify-center shadow-lg border border-outline-variant/30 relative overflow-hidden group">
+              <div className="bg-surface-container rounded-[24px] p-8 flex flex-col items-center justify-center shadow-lg border border-outline-variant/30 relative overflow-hidden group">
                 {/* Decorative gradients */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none"></div>
                 <div className="absolute bottom-0 left-0 w-32 h-32 bg-secondary/5 rounded-full blur-2xl -ml-16 -mb-16 pointer-events-none"></div>
                 
                 {/* QR Image Container */}
-                <div className="w-full max-w-[280px] aspect-square bg-white rounded-2xl shadow-sm border border-outline-variant/20 p-4 mb-8 flex items-center justify-center relative">
+                <div className="w-full max-w-[280px] aspect-square bg-surface-container rounded-2xl shadow-sm border border-outline-variant/20 p-4 mb-8 flex items-center justify-center relative">
                   <img 
                     alt="Merchant QR Code" 
                     className="w-full h-full object-contain mix-blend-multiply" 
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvl5_YVgFLWnrbPpOqi2wFK0PrV0vldKnaUb8Ggd1GAj50QQzTqlvXDTRnFo6WjHaVlRh63PdwNCqD6_lhgAAAc0XNXBFOkgUQVcNGXkJsAqD0BoJbkHafvIYblYjLy0Z86_a_yhEHJRT7hWBOtgSlhm_X5VjFw0b9QH_TuN_iwKDdZJPoLherznUnp7evyli8edXylOkpxMES5vpUzpgHHVk4sVri_etsi3nNZuWwz4cGUc4IuAgK"
                   />
                   {/* Central Logo Overlay */}
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-1.5 shadow-md">
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-surface-container rounded-full p-1.5 shadow-md">
                     <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xl">M</div>
                   </div>
                 </div>
@@ -158,14 +158,14 @@ export default function PaymentQR({ navigate, showToast }) {
                 </button>
                 <button 
                   onClick={() => window.print()}
-                  className="bg-white border-2 border-primary text-primary font-label-md text-label-md py-3.5 rounded-xl hover:bg-surface-container transition-all active:scale-95 flex items-center justify-center gap-2"
+                  className="bg-surface-container border-2 border-primary text-primary font-label-md text-label-md py-3.5 rounded-xl hover:bg-surface-container transition-all active:scale-95 flex items-center justify-center gap-2"
                 >
                   <span className="material-symbols-outlined text-sm">print</span>
                   <span>Print Standee</span>
                 </button>
                 <button 
                   onClick={handleShareLink}
-                  className="col-span-2 bg-white border border-outline-variant text-on-surface font-label-md text-label-md py-3.5 rounded-xl hover:bg-surface-container transition-all active:scale-95 flex items-center justify-center gap-2"
+                  className="col-span-2 bg-surface-container border border-outline-variant text-on-surface font-label-md text-label-md py-3.5 rounded-xl hover:bg-surface-container transition-all active:scale-95 flex items-center justify-center gap-2"
                 >
                   <span className="material-symbols-outlined text-sm">
                     {copiedLink ? 'check' : 'share'}
@@ -199,8 +199,8 @@ export default function PaymentQR({ navigate, showToast }) {
               </div>
 
               {/* Recent QR Transactions Card */}
-              <div className="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden flex flex-col flex-grow">
-                <div className="p-6 border-b border-outline-variant/20 flex items-center justify-between bg-white/40">
+              <div className="bg-surface-container rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden flex flex-col flex-grow">
+                <div className="p-6 border-b border-outline-variant/20 flex items-center justify-between bg-surface-container-low">
                   <h3 className="font-headline-md text-headline-md font-bold text-on-background text-lg">Recent QR Transactions</h3>
                   <button 
                     onClick={() => navigate('/merchant/earnings-reports')}

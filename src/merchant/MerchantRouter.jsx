@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import FloatingCoinsBackground from './components/FloatingCoinsBackground';
 import Welcome from './pages/Welcome';
 import Register from './pages/Register';
 import VerificationPending from './pages/VerificationPending';
@@ -75,13 +76,19 @@ export default function MerchantRouter() {
   };
 
   return (
-    <div className="min-h-screen bg-background transition-colors duration-200 relative">
-      {renderPage()}
+    <div className="min-h-screen bg-background transition-colors duration-200 relative overflow-hidden">
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <FloatingCoinsBackground />
+      </div>
+      
+      <div className="relative z-10">
+        {renderPage()}
+      </div>
 
       {/* Global Animated Premium Toast Notification */}
       {toast && (
         <div 
-          className={`fixed bottom-6 right-6 z-50 animate-slide-in-right bg-white rounded-2xl shadow-2xl border p-4 max-w-sm flex items-start gap-3.5 transition-all duration-300 border-outline-variant/40`}
+          className={`fixed bottom-6 right-6 z-50 animate-slide-in-right bg-surface-container rounded-2xl shadow-2xl border p-4 max-w-sm flex items-start gap-3.5 transition-all duration-300 border-outline-variant/40`}
           style={{ boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)' }}
         >
           {/* Accent Line */}

@@ -1,11 +1,12 @@
 import React from 'react';
+import { Home, LineChart, Wallet, User } from 'lucide-react';
 
 export default function MerchantBottomNav({ currentPath, navigate }) {
   const navItems = [
-    { name: 'Home', icon: 'home', path: '/merchant/dashboard' },
-    { name: 'Analytics', icon: 'analytics', path: '/merchant/earnings-reports' },
-    { name: 'Wallet', icon: 'account_balance_wallet', path: '/merchant/payment-qr' },
-    { name: 'Profile', icon: 'person', path: '/merchant/profile' },
+    { name: 'Home', icon: Home, path: '/merchant/dashboard' },
+    { name: 'Analytics', icon: LineChart, path: '/merchant/earnings-reports' },
+    { name: 'Wallet', icon: Wallet, path: '/merchant/payment-qr' },
+    { name: 'Profile', icon: User, path: '/merchant/profile' },
   ];
 
   return (
@@ -22,12 +23,10 @@ export default function MerchantBottomNav({ currentPath, navigate }) {
                 : 'text-on-surface-variant hover:bg-surface-variant/50'
             }`}
           >
-            <span 
-              className="material-symbols-outlined text-xl"
-              style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
-            >
-              {item.icon}
-            </span>
+            <item.icon 
+              className={`w-6 h-6 ${isActive ? 'text-primary' : 'text-on-surface-variant'}`}
+              strokeWidth={isActive ? 2.5 : 2}
+            />
             <span className="font-label-sm text-label-sm mt-1">{item.name}</span>
           </button>
         );

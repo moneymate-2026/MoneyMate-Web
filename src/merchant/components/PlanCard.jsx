@@ -15,8 +15,8 @@ export default function PlanCard({
   return (
     <div className={`rounded-[24px] p-8 flex flex-col h-full relative overflow-hidden transition-all duration-300 ${
       isPopular 
-        ? 'bg-white premium-glow shadow-[0_20px_40px_rgba(108,56,248,0.1)] border-2 border-primary transform md:-translate-y-4 z-10' 
-        : 'bg-white/70 backdrop-blur-md border border-outline-variant/50 shadow-[0_4px_20px_rgba(108,56,248,0.05)]'
+        ? 'bg-surface-container premium-glow shadow-[0_20px_40px_rgba(108,56,248,0.1)] border-2 border-primary transform md:-translate-y-4 z-10' 
+        : 'bg-surface-container backdrop-blur-md border border-outline-variant/50 shadow-[0_4px_20px_rgba(108,56,248,0.05)]'
     }`}>
       {isCurrent && (
         <div className="absolute top-0 right-0 bg-surface-variant text-on-surface-variant font-label-sm text-label-sm px-4 py-1 rounded-bl-lg">
@@ -54,7 +54,7 @@ export default function PlanCard({
             ? 'bg-surface-container text-on-surface border border-outline-variant/50 cursor-default'
             : buttonType === 'primary'
               ? 'bg-primary hover:bg-primary/90 text-on-primary shadow-md hover:scale-[1.02] active:scale-[0.98]'
-              : 'bg-white hover:bg-surface-variant text-primary border-2 border-primary'
+              : 'bg-surface-container hover:bg-surface-variant text-primary border-2 border-primary'
         } mb-8`}
       >
         {buttonText}

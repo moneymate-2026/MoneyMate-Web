@@ -42,7 +42,7 @@ export default function KYCStatus({ navigate, showToast }) {
       <MerchantSidebar currentPath={currentPath} navigate={navigate} />
 
       {/* Main Container */}
-      <div className="flex-grow md:ml-64 flex flex-col">
+      <div className="flex-grow md:ml-[280px] flex flex-col">
         {/* Top Navbar */}
         <MerchantNavbar currentPath={currentPath} navigate={navigate} />
 
@@ -56,7 +56,7 @@ export default function KYCStatus({ navigate, showToast }) {
 
           <div className="space-y-6">
             {/* KYC status card */}
-            <div className="bg-white/70 backdrop-blur-md rounded-2xl p-6 md:p-8 border-2 border-primary/20 shadow-lg relative overflow-hidden animate-scale-up">
+            <div className="bg-surface-container backdrop-blur-md rounded-2xl p-6 md:p-8 border-2 border-primary/20 shadow-lg relative overflow-hidden animate-scale-up">
               <div className="flex justify-between items-start mb-6">
                 <h3 className="font-headline-md text-headline-md font-bold text-on-surface flex items-center gap-2 text-lg">
                   <span className="material-symbols-outlined text-tertiary-container" style={{ fontVariationSettings: "'FILL' 1" }}>verified_user</span>

@@ -14,6 +14,7 @@ export default function CreateOffer({ navigate, showToast }) {
     startDate: '',
     endDate: '',
     targetAudience: 'All Customers',
+    bannerFile: null,
   });
   const [loading, setLoading] = useState(false);
   const [launched, setLaunched] = useState(false);
@@ -22,6 +23,13 @@ export default function CreateOffer({ navigate, showToast }) {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleFileChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.files[0] ? e.target.files[0].name : null,
     });
   };
 
@@ -48,7 +56,7 @@ export default function CreateOffer({ navigate, showToast }) {
       <MerchantSidebar currentPath={currentPath} navigate={navigate} />
 
       {/* Main Container */}
-      <div className="flex-grow md:ml-64 flex flex-col">
+      <div className="flex-grow md:ml-[280px] flex flex-col">
         {/* Top Navbar */}
         <MerchantNavbar currentPath={currentPath} navigate={navigate} />
 
@@ -71,7 +79,7 @@ export default function CreateOffer({ navigate, showToast }) {
           )}
 
           {/* Form Card */}
-          <div className="bg-white/70 backdrop-blur-md rounded-2xl border border-outline-variant/30 p-6 md:p-8 shadow-sm relative overflow-hidden animate-scale-up delay-75">
+          <div className="bg-surface-container backdrop-blur-md rounded-2xl border border-outline-variant/30 p-6 md:p-8 shadow-sm relative overflow-hidden animate-scale-up delay-75">
             <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-l-2xl"></div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -129,6 +137,27 @@ export default function CreateOffer({ navigate, showToast }) {
                   placeholder="e.g. 10"
                   className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                 />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Offer Banner Image</label>
+                <div className="border-2 border-dashed border-outline-variant rounded-xl p-4 bg-surface-container-lowest flex flex-col items-center justify-center relative hover:bg-primary/5 transition-colors cursor-pointer group">
+                  <input 
+                    type="file" 
+                    name="bannerFile"
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                  />
+                  <span className="material-symbols-outlined text-outline group-hover:text-primary text-3xl mb-1 transition-colors">image</span>
+                  <p className="font-label-sm text-label-sm text-on-surface-variant text-center">
+                    {formData.bannerFile ? (
+                      <span className="text-primary font-bold">{formData.bannerFile}</span>
+                    ) : (
+                      <span>Click or Drag to Upload Banner Image</span>
+                    )}
+                  </p>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

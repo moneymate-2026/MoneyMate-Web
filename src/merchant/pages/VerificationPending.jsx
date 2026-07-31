@@ -39,7 +39,7 @@ export default function VerificationPending({ navigate }) {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] -mr-48 -mt-48 pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-secondary/5 rounded-full blur-[120px] -ml-60 -mb-60 pointer-events-none"></div>
 
-      <div className="max-w-md w-full bg-white rounded-3xl p-8 md:p-10 border border-outline-variant/30 shadow-2xl relative z-10 text-center space-y-6 animate-scale-up">
+      <div className="max-w-md w-full bg-surface-container rounded-3xl p-8 md:p-10 border border-outline-variant/30 shadow-2xl relative z-10 text-center space-y-6 animate-scale-up">
         {/* Status Icon */}
         <div className="relative mx-auto w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center text-primary animate-float">
           <span className="material-symbols-outlined text-5xl animate-pulse">

@@ -52,14 +52,14 @@ export default function Dashboard({ navigate, showToast }) {
       <MerchantSidebar currentPath={currentPath} navigate={navigate} />
 
       {/* Main Container */}
-      <div className="flex-grow md:ml-64 flex flex-col">
+      <div className="flex-grow md:ml-[280px] flex flex-col">
         {/* Top Navbar */}
         <MerchantNavbar currentPath={currentPath} navigate={navigate} />
 
         {/* Page Content */}
         <main className="p-6 md:p-8 space-y-8 max-w-7xl w-full mx-auto pb-24 md:pb-8 flex-grow">
           {/* Welcome Banner */}
-          <div className="bg-white/70 backdrop-blur-md p-6 rounded-2xl border border-outline-variant/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm animate-fade-in">
+          <div className="bg-surface-container backdrop-blur-md p-6 rounded-2xl border border-outline-variant/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm animate-fade-in">
             <div>
               <h2 className="font-headline-lg text-headline-lg font-bold text-on-background text-2xl md:text-3xl">
                 Welcome back, {businessName}
@@ -87,8 +87,8 @@ export default function Dashboard({ navigate, showToast }) {
           {/* Quick Actions & Recent transactions */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Recent Scans Table */}
-            <div className="lg:col-span-8 bg-white/70 backdrop-blur-md rounded-2xl border border-outline-variant/30 shadow-sm overflow-hidden flex flex-col animate-slide-in-left delay-150">
-              <div className="p-6 border-b border-outline-variant/20 flex justify-between items-center bg-white/40">
+            <div className="lg:col-span-8 bg-surface-container backdrop-blur-md rounded-2xl border border-outline-variant/30 shadow-sm overflow-hidden flex flex-col animate-slide-in-left delay-150">
+              <div className="p-6 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-low">
                 <h3 className="font-headline-md text-headline-md text-on-background font-bold text-lg">Recent QR Scans</h3>
                 <button 
                   onClick={() => navigate('/merchant/earnings-reports')}
@@ -134,7 +134,7 @@ export default function Dashboard({ navigate, showToast }) {
             </div>
 
             {/* Campaign Quick Setup */}
-            <div className="lg:col-span-4 bg-white/70 backdrop-blur-md rounded-2xl border border-outline-variant/30 p-6 shadow-sm flex flex-col justify-between animate-slide-in-right delay-150">
+            <div className="lg:col-span-4 bg-surface-container backdrop-blur-md rounded-2xl border border-outline-variant/30 p-6 shadow-sm flex flex-col justify-between animate-slide-in-right delay-150">
               <div className="space-y-4">
                 <div className="w-12 h-12 rounded-xl bg-secondary-container text-on-secondary-container flex items-center justify-center">
                   <span className="material-symbols-outlined text-2xl">campaign</span>

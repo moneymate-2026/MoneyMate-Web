@@ -86,7 +86,7 @@ export default function Profile({ navigate, showToast }) {
       <MerchantSidebar currentPath={currentPath} navigate={navigate} />
 
       {/* Main Container */}
-      <div className="flex-grow md:ml-64 flex flex-col">
+      <div className="flex-grow md:ml-[280px] flex flex-col">
         {/* Top Navbar */}
         <MerchantNavbar currentPath={currentPath} navigate={navigate} />
 
@@ -100,7 +100,7 @@ export default function Profile({ navigate, showToast }) {
 
           <div className="space-y-8">
             {/* Business details form */}
-            <div className="bg-white/70 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-outline-variant/30 shadow-sm relative overflow-hidden animate-slide-in-left">
+            <div className="bg-surface-container backdrop-blur-md rounded-2xl p-6 md:p-8 border border-outline-variant/30 shadow-sm relative overflow-hidden animate-slide-in-left">
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-l-2xl"></div>
               <h3 className="font-headline-md text-headline-md font-bold text-on-surface mb-6 flex items-center gap-2 text-xl">
                 <span className="material-symbols-outlined text-primary">storefront</span>
@@ -232,7 +232,7 @@ export default function Profile({ navigate, showToast }) {
             </div>
 
             {/* Primary Contact card */}
-            <div className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-outline-variant/30 shadow-sm relative overflow-hidden animate-slide-in-left delay-75">
+            <div className="bg-surface-container backdrop-blur-md rounded-2xl p-6 border border-outline-variant/30 shadow-sm relative overflow-hidden animate-slide-in-left delay-75">
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-secondary rounded-l-2xl"></div>
               <h3 className="font-headline-md text-headline-md font-bold text-on-surface mb-4 flex items-center gap-2 text-xl">
                 <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>account_circle</span>

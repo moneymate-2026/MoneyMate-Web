@@ -94,7 +94,7 @@ export default function MerchantPlans() {
 
       {/* Subscription Tier Cards Grid */}
       {loading ? (
-        <div className="p-16 flex flex-col items-center justify-center text-admin-on-surface-variant bg-white border rounded-2xl">
+        <div className="p-16 flex flex-col items-center justify-center text-admin-on-surface-variant bg-admin-surface-container border rounded-2xl">
           <div className="w-9 h-9 border-4 border-admin-outline-variant border-t-admin-primary rounded-full animate-spin mb-4"></div>
           <p className="font-semibold text-sm">Loading SaaS tier configurations...</p>
         </div>
@@ -103,7 +103,7 @@ export default function MerchantPlans() {
           {plans.map((plan) => (
             <div 
               key={plan.id}
-              className={`bg-white rounded-3xl p-6 border flex flex-col justify-between relative shadow-sm hover:shadow-xl transition-all ${
+              className={`bg-admin-surface-container rounded-3xl p-6 border flex flex-col justify-between relative shadow-sm hover:shadow-xl transition-all ${
                 plan.id === "PLAN-PREMIUM" 
                   ? "border-amber-400 ring-2 ring-amber-400/30 bg-gradient-to-b from-amber-50/30 to-white" 
                   : "border-admin-outline-variant"
@@ -122,7 +122,7 @@ export default function MerchantPlans() {
                      plan.id === "PLAN-PREMIUM" ? <Sparkles className="w-6 h-6 text-amber-500" /> :
                      <Layers className="w-6 h-6 text-slate-600" />}
                   </div>
-                  <span className="font-mono text-xs bg-slate-100 text-slate-600 font-bold px-2 py-1 rounded-lg">
+                  <span className="font-mono text-xs bg-admin-surface-container-highest text-slate-600 font-bold px-2 py-1 rounded-lg">
                     {plan.activeMerchants} Stores
                   </span>
                 </div>
@@ -171,20 +171,20 @@ export default function MerchantPlans() {
       {/* Edit Tier Modal */}
       {editingPlan && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border border-admin-outline-variant animate-in zoom-in-95 duration-200">
-            <div className="p-6 border-b border-admin-outline-variant flex justify-between items-center bg-slate-50">
+          <div className="bg-admin-surface-container rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border border-admin-outline-variant animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-admin-outline-variant flex justify-between items-center bg-admin-surface-container-high">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-admin-primary/10 text-admin-primary flex items-center justify-center font-bold">
                   <Edit3 className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="font-extrabold text-lg text-admin-on-surface">Edit {editingPlan.name}</h3>
-                  <span className="text-xs text-slate-500">Update monthly pricing & limits</span>
+                  <span className="text-xs text-admin-on-surface-variant">Update monthly pricing & limits</span>
                 </div>
               </div>
               <button 
                 onClick={() => setEditingPlan(null)}
-                className="p-1.5 hover:bg-slate-200 rounded-full text-slate-500 hover:text-slate-800 transition-colors"
+                className="p-1.5 hover:bg-admin-surface-container-highest rounded-full text-admin-on-surface-variant hover:text-admin-on-surface transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -222,7 +222,7 @@ export default function MerchantPlans() {
                 <button 
                   type="button"
                   onClick={() => setEditingPlan(null)}
-                  className="px-4 py-2 border border-slate-300 text-slate-700 font-semibold text-xs rounded-xl hover:bg-slate-100 transition-colors"
+                  className="px-4 py-2 border border-admin-outline-variant text-admin-on-surface font-semibold text-xs rounded-xl hover:bg-admin-surface-container-highest transition-colors"
                 >
                   Cancel
                 </button>

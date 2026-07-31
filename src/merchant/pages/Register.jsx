@@ -19,6 +19,9 @@ export default function Register({ navigate, showToast }) {
     shopLicenseFile: null,
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -75,339 +78,225 @@ export default function Register({ navigate, showToast }) {
     }
   };
 
+  const inputClasses = "w-full bg-white border-2 border-slate-100 rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 placeholder:text-slate-300 focus:border-[#6366f1] focus:ring-4 focus:ring-[#6366f1]/10 outline-none transition-all shadow-sm";
+  const labelClasses = "text-[10px] font-bold text-slate-500 uppercase tracking-wider pl-1 mb-1 block";
+
   return (
-    <div className="bg-background text-on-background min-h-screen flex items-center justify-center py-12 px-6 relative overflow-hidden font-body-md">
-      {/* Decorative gradients */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] -mr-48 -mt-48 pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-secondary/5 rounded-full blur-[120px] -ml-60 -mb-60 pointer-events-none"></div>
+    <div className="bg-[#eef2f6] text-slate-900 min-h-screen flex items-center justify-center p-4 md:p-8 relative overflow-hidden font-body-md z-10">
+      
+      {/* Abstract Polygonal Background Outside the Box */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-5%] left-[-5%] w-[45%] h-[65%] bg-[#6366f1] opacity-90" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[75%] bg-[#8b3dff] opacity-10" style={{ clipPath: 'polygon(100% 100%, 0 100%, 100% 0)' }}></div>
+        <div className="absolute top-[15%] right-[10%] w-[35%] h-[55%] bg-[#3b82f6] opacity-20" style={{ clipPath: 'polygon(50% 0, 100% 100%, 0 100%)' }}></div>
+        <div className="absolute bottom-[5%] left-[20%] w-[30%] h-[40%] bg-white opacity-40" style={{ clipPath: 'polygon(0 50%, 50% 100%, 100% 0)' }}></div>
+      </div>
 
-      <div className="max-w-2xl w-full bg-white rounded-3xl p-8 md:p-12 border border-outline-variant/30 shadow-2xl relative z-10 animate-scale-up">
-        {/* Top Header */}
-        <div className="text-center mb-8">
-          <div 
-            onClick={() => navigate('/merchant/welcome')}
-            className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-white font-bold text-2xl mx-auto shadow-md cursor-pointer mb-4"
-          >
-            M
+      {/* Main Container Card */}
+      <div className="w-full max-w-[1300px] min-h-[750px] bg-white rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] overflow-hidden flex relative z-20">
+        
+        {/* Left Side: Form */}
+        <div className="w-full lg:w-[50%] p-8 md:p-12 lg:p-16 flex flex-col justify-center relative z-20 bg-transparent">
+          <div className="w-full max-w-[420px] mx-auto">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div 
+                  onClick={() => navigate('/merchant/welcome')}
+                  className="w-10 h-10 bg-[#6366f1] rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/30 cursor-pointer hover:scale-105 transition-transform shrink-0"
+                >
+                  M
+                </div>
+                <div>
+                  <h2 className="text-2xl font-extrabold text-[#6366f1] tracking-tight">Merchant Setup</h2>
+                  <p className="text-xs font-semibold text-slate-400">Step {step} of 3</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="flex items-center gap-2 mb-8">
+              {[1, 2, 3].map((num) => (
+                <React.Fragment key={num}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-colors shrink-0 ${
+                    step >= num ? 'bg-[#6366f1] text-white shadow-md shadow-indigo-500/30' : 'bg-slate-100 text-slate-400'
+                  }`}>
+                    {num}
+                  </div>
+                  {num < 3 && (
+                    <div className={`flex-1 h-1 rounded-full transition-colors ${
+                      step > num ? 'bg-[#6366f1]' : 'bg-slate-100'
+                    }`}></div>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+
+            {/* Forms container */}
+            <div className="flex-1">
+              {step === 1 && (
+                <form onSubmit={handleNext1} className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-500">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelClasses}>Legal Business Name</label>
+                      <input type="text" name="businessName" value={formData.businessName} onChange={handleChange} required placeholder="Apex Innovations" className={inputClasses} />
+                    </div>
+                    <div>
+                      <label className={labelClasses}>Doing Business As (DBA)</label>
+                      <input type="text" name="dbaName" value={formData.dbaName} onChange={handleChange} placeholder="Apex Tech" className={inputClasses} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelClasses}>Business Type</label>
+                      <input type="text" name="businessType" value={formData.businessType} onChange={handleChange} required placeholder="Retail, Software..." className={inputClasses} />
+                    </div>
+                    <div>
+                      <label className={labelClasses}>Tax ID / EIN</label>
+                      <input type="text" name="taxId" value={formData.taxId} onChange={handleChange} required placeholder="XX-XXXXXXX" className={inputClasses} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelClasses}>Registered Address</label>
+                    <textarea name="address" value={formData.address} onChange={handleChange} required rows="2" placeholder="Full address details..." className="w-full bg-white border-2 border-slate-100 rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 placeholder:text-slate-300 focus:border-[#6366f1] focus:ring-4 focus:ring-[#6366f1]/10 outline-none transition-all shadow-sm resize-none"></textarea>
+                  </div>
+
+                  <div className="pt-2 flex justify-between items-center">
+                    <button type="button" onClick={() => navigate('/merchant/welcome')} className="text-slate-500 hover:text-[#6366f1] text-sm font-bold transition-colors">
+                      Cancel
+                    </button>
+                    <button type="submit" className="bg-[#5658e6] hover:bg-[#4338ca] text-white font-bold text-sm px-6 py-3 rounded-xl shadow-lg shadow-indigo-500/30 transition-all active:scale-[0.98] flex items-center gap-2">
+                      Next Step <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {step === 2 && (
+                <form onSubmit={handleNext2} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
+                  <div>
+                    <label className={labelClasses}>Primary Owner Name</label>
+                    <input type="text" name="ownerName" value={formData.ownerName} onChange={handleChange} required placeholder="Full Legal Name" className={inputClasses} />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelClasses}>Contact Email</label>
+                      <input type="email" name="email" value={formData.email} onChange={handleChange} required placeholder="owner@business.com" className={inputClasses} />
+                    </div>
+                    <div>
+                      <label className={labelClasses}>Mobile Number</label>
+                      <input type="tel" name="mobile" value={formData.mobile} onChange={handleChange} required placeholder="(555) 123-4567" className={inputClasses} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="relative">
+                      <label className={labelClasses}>Password</label>
+                      <input type={showPassword ? "text" : "password"} name="password" value={formData.password} onChange={handleChange} required placeholder="••••••••" className={inputClasses} />
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-8 text-slate-400 hover:text-[#6366f1]">
+                        <span className="material-symbols-outlined text-[18px]">{showPassword ? 'visibility_off' : 'visibility'}</span>
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <label className={labelClasses}>Confirm Password</label>
+                      <input type={showConfirmPassword ? "text" : "password"} name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required placeholder="••••••••" className={inputClasses} />
+                      <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-8 text-slate-400 hover:text-[#6366f1]">
+                        <span className="material-symbols-outlined text-[18px]">{showConfirmPassword ? 'visibility_off' : 'visibility'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex justify-between items-center">
+                    <button type="button" onClick={handlePrev} className="text-slate-500 hover:text-[#6366f1] text-sm font-bold transition-colors">
+                      Back
+                    </button>
+                    <button type="submit" className="bg-[#5658e6] hover:bg-[#4338ca] text-white font-bold text-sm px-6 py-3 rounded-xl shadow-lg shadow-indigo-500/30 transition-all active:scale-[0.98] flex items-center gap-2">
+                      Next Step <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {step === 3 && (
+                <form onSubmit={handleSubmit} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
+                  <div>
+                    <label className={labelClasses}>12-Digit Aadhaar Card Number</label>
+                    <input type="text" name="aadharNumber" maxLength="12" pattern="\d{12}" value={formData.aadharNumber} onChange={handleChange} required placeholder="e.g. 123456789012" className={inputClasses} />
+                  </div>
+
+                  <div>
+                    <label className={labelClasses}>Upload Aadhaar Card</label>
+                    <div className="border-2 border-dashed border-slate-200 rounded-xl p-4 bg-slate-50/50 flex flex-col items-center justify-center relative hover:bg-[#6366f1]/5 transition-colors cursor-pointer group">
+                      <input type="file" name="aadharFile" onChange={handleFileChange} accept=".pdf,image/*" required className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                      <span className="material-symbols-outlined text-slate-300 group-hover:text-[#6366f1] text-2xl mb-1 transition-colors">upload_file</span>
+                      <p className="text-[10px] font-bold text-slate-500 text-center uppercase tracking-wider">
+                        {formData.aadharFile ? <span className="text-[#6366f1]">{formData.aadharFile}</span> : "Click to Upload"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelClasses}>Upload Shop License</label>
+                    <div className="border-2 border-dashed border-slate-200 rounded-xl p-4 bg-slate-50/50 flex flex-col items-center justify-center relative hover:bg-[#6366f1]/5 transition-colors cursor-pointer group">
+                      <input type="file" name="shopLicenseFile" onChange={handleFileChange} accept=".pdf,image/*" required className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                      <span className="material-symbols-outlined text-slate-300 group-hover:text-[#6366f1] text-2xl mb-1 transition-colors">storefront</span>
+                      <p className="text-[10px] font-bold text-slate-500 text-center uppercase tracking-wider">
+                        {formData.shopLicenseFile ? <span className="text-[#6366f1]">{formData.shopLicenseFile}</span> : "Click to Upload"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex justify-between items-center">
+                    <button type="button" onClick={handlePrev} className="text-slate-500 hover:text-[#6366f1] text-sm font-bold transition-colors">
+                      Back
+                    </button>
+                    <button type="submit" className="bg-[#10b981] hover:bg-[#059669] text-white font-bold text-sm px-6 py-3 rounded-xl shadow-lg shadow-emerald-500/30 transition-all active:scale-[0.98] flex items-center gap-2">
+                      Submit <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+
+            <div className="text-center pt-6 mt-4 border-t border-slate-100">
+               <p className="text-xs font-semibold text-slate-400">
+                 Already have an account?{' '}
+                 <button type="button" onClick={() => navigate('/merchant/login')} className="text-[#6366f1] hover:underline font-bold">Login</button>
+               </p>
+            </div>
           </div>
-          <h2 className="font-headline-lg text-headline-lg text-on-background font-bold text-3xl">Merchant Registration</h2>
-          <p className="font-body-sm text-body-sm text-on-surface-variant mt-2">
-            Set up your store account in three simple steps.
-          </p>
         </div>
 
-        {/* Progress Bar */}
-        <div className="flex items-center justify-center gap-2 md:gap-4 mb-8 overflow-x-auto py-2">
-          {/* Step 1 indicator */}
-          <div className="flex items-center gap-2 shrink-0">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${
-              step >= 1 ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'
-            }`}>
-              1
+        {/* Right Side: Abstract Diagonal Visuals */}
+        <div 
+          className="hidden lg:flex absolute top-0 bottom-0 right-0 w-[58%] bg-gradient-to-br from-[#8b3dff] via-[#6366f1] to-[#3b82f6] items-center justify-center z-10"
+          style={{ clipPath: 'polygon(22% 0, 100% 0, 100% 100%, 0 100%)' }}
+        >
+          {/* Glassmorphism Abstract Triangles (using skewed shapes) */}
+          <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+            
+            {/* Shape 1 - Background */}
+            <div className="absolute top-[30%] left-[20%] w-[120%] h-[120%] bg-white/5 backdrop-blur-sm border border-white/10 rounded-[6rem] rotate-12 z-0" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }}></div>
+            
+            {/* Shape 2 - Middle (Triangle) */}
+            <div className="absolute top-[20%] left-[10%] w-[100%] h-[100%] bg-white/10 backdrop-blur-md border border-white/20 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.2)] z-10" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)', transform: 'rotate(-15deg)' }}></div>
+
+            {/* Shape 3 - Foreground (Triangle) */}
+            <div className="absolute top-[35%] left-[25%] w-[80%] h-[80%] bg-white/20 backdrop-blur-xl border border-white/30 rounded-[3rem] shadow-[0_30px_60px_rgba(0,0,0,0.3)] z-20 flex items-center justify-center gap-3" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)', transform: 'rotate(5deg)' }}>
+              <div className="absolute bottom-[30%] flex items-center gap-3">
+                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-inner">
+                  <span className="text-[#6366f1] font-black text-2xl">M</span>
+                </div>
+                <span className="text-4xl font-black text-white tracking-widest drop-shadow-md">MONEYMATE</span>
+              </div>
             </div>
-            <span className={`font-label-md text-label-md transition-colors ${step >= 1 ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>
-              Business Details
-            </span>
+
+            {/* Soft glowing orbs */}
+            <div className="absolute top-20 right-20 w-40 h-40 bg-white/20 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-20 left-40 w-60 h-60 bg-[#8b3dff]/40 rounded-full blur-3xl"></div>
           </div>
-          <div className="w-6 md:w-10 h-0.5 bg-outline-variant/50 shrink-0"></div>
-          
-          {/* Step 2 indicator */}
-          <div className="flex items-center gap-2 shrink-0">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${
-              step >= 2 ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'
-            }`}>
-              2
-            </div>
-            <span className={`font-label-md text-label-md transition-colors ${step >= 2 ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>
-              Owner Info
-            </span>
-          </div>
-          <div className="w-6 md:w-10 h-0.5 bg-outline-variant/50 shrink-0"></div>
-
-          {/* Step 3 indicator */}
-          <div className="flex items-center gap-2 shrink-0">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${
-              step === 3 ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'
-            }`}>
-              3
-            </div>
-            <span className={`font-label-md text-label-md transition-colors ${step === 3 ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>
-              KYC Documents
-            </span>
-          </div>
-        </div>
-
-        {step === 1 && (
-          /* Step 1 Form: Business details */
-          <form onSubmit={handleNext1} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="space-y-1">
-                <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Legal Business Name</label>
-                <input 
-                  type="text" 
-                  name="businessName"
-                  value={formData.businessName}
-                  onChange={handleChange}
-                  required
-                  placeholder="e.g. Apex Innovations LLC"
-                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Doing Business As (DBA)</label>
-                <input 
-                  type="text" 
-                  name="dbaName"
-                  value={formData.dbaName}
-                  onChange={handleChange}
-                  placeholder="e.g. Apex Tech"
-                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="space-y-1">
-                <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Business Type</label>
-                <input 
-                  type="text"
-                  name="businessType"
-                  value={formData.businessType}
-                  onChange={handleChange}
-                  required
-                  placeholder="e.g. Retail, Software, etc."
-                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Tax ID / EIN</label>
-                <input 
-                  type="text" 
-                  name="taxId"
-                  value={formData.taxId}
-                  onChange={handleChange}
-                  required
-                  placeholder="XX-XXXXXXX"
-                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Registered Address</label>
-              <textarea 
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                required
-                rows="3"
-                placeholder="Full address details..."
-                className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none"
-              ></textarea>
-            </div>
-
-            <div className="pt-4 flex justify-between items-center border-t border-outline-variant/30">
-              <button 
-                type="button"
-                onClick={() => navigate('/merchant/welcome')}
-                className="font-label-md text-label-md text-primary hover:bg-primary/5 px-6 py-3 rounded-xl transition-colors"
-              >
-                Back to Welcome
-              </button>
-              <button 
-                type="submit"
-                className="bg-primary hover:bg-primary/95 text-on-primary font-label-md text-label-md px-8 py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 flex items-center gap-2"
-              >
-                <span>Continue</span>
-                <span className="material-symbols-outlined text-sm">arrow_forward</span>
-              </button>
-            </div>
-          </form>
-        )}
-
-        {step === 2 && (
-          /* Step 2 Form: Credentials & owner details */
-          <form onSubmit={handleNext2} className="space-y-6">
-            <div className="space-y-1">
-              <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Primary Owner / Director Name</label>
-              <input 
-                type="text" 
-                name="ownerName"
-                value={formData.ownerName}
-                onChange={handleChange}
-                required
-                placeholder="Full Legal Name"
-                className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="space-y-1">
-                <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Contact Email</label>
-                <input 
-                  type="email" 
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  placeholder="owner@business.com"
-                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Mobile Number</label>
-                <input 
-                  type="tel" 
-                  name="mobile"
-                  value={formData.mobile}
-                  onChange={handleChange}
-                  required
-                  placeholder="(555) 123-4567"
-                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="space-y-1">
-                <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Password</label>
-                <input 
-                  type="password" 
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  placeholder="••••••••"
-                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Confirm Password</label>
-                <input 
-                  type="password" 
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                  placeholder="••••••••"
-                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-                />
-              </div>
-            </div>
-
-            <div className="pt-4 flex justify-between items-center border-t border-outline-variant/30">
-              <button 
-                type="button"
-                onClick={handlePrev}
-                className="font-label-md text-label-md text-primary hover:bg-primary/5 px-6 py-3 rounded-xl transition-colors"
-              >
-                Back to Business Details
-              </button>
-              <button 
-                type="submit"
-                className="bg-primary hover:bg-primary/95 text-on-primary font-label-md text-label-md px-8 py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 flex items-center gap-2"
-              >
-                <span>Continue</span>
-                <span className="material-symbols-outlined text-sm">arrow_forward</span>
-              </button>
-            </div>
-          </form>
-        )}
-
-        {step === 3 && (
-          /* Step 3 Form: KYC Verification (Shop License & Aadhaar Card) */
-          <form onSubmit={handleSubmit} className="space-y-6 animate-fadeIn">
-            <div className="space-y-1">
-              <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">12-Digit Aadhaar Card Number</label>
-              <input 
-                type="text" 
-                name="aadharNumber"
-                maxLength="12"
-                pattern="\d{12}"
-                value={formData.aadharNumber}
-                onChange={handleChange}
-                required
-                placeholder="e.g. 123456789012"
-                className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-              />
-            </div>
-
-            {/* Aadhaar File Upload */}
-            <div className="space-y-1">
-              <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Upload Aadhaar Card (PDF / Image)</label>
-              <div className="border-2 border-dashed border-outline-variant rounded-xl p-4 bg-surface-container-lowest flex flex-col items-center justify-center relative hover:bg-primary/5 transition-colors">
-                <input 
-                  type="file" 
-                  name="aadharFile"
-                  onChange={handleFileChange}
-                  accept=".pdf,image/*"
-                  required
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                <span className="material-symbols-outlined text-outline text-3xl mb-1">upload_file</span>
-                <p className="font-label-sm text-label-sm text-on-surface-variant text-center">
-                  {formData.aadharFile ? (
-                    <span className="text-primary font-bold">{formData.aadharFile}</span>
-                  ) : (
-                    <span>Click or Drag to Upload Aadhaar Card</span>
-                  )}
-                </p>
-              </div>
-            </div>
-
-            {/* Shop License File Upload */}
-            <div className="space-y-1">
-              <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Upload Shop License / Registration Document (PDF / Image)</label>
-              <div className="border-2 border-dashed border-outline-variant rounded-xl p-4 bg-surface-container-lowest flex flex-col items-center justify-center relative hover:bg-primary/5 transition-colors">
-                <input 
-                  type="file" 
-                  name="shopLicenseFile"
-                  onChange={handleFileChange}
-                  accept=".pdf,image/*"
-                  required
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                <span className="material-symbols-outlined text-outline text-3xl mb-1">storefront</span>
-                <p className="font-label-sm text-label-sm text-on-surface-variant text-center">
-                  {formData.shopLicenseFile ? (
-                    <span className="text-primary font-bold">{formData.shopLicenseFile}</span>
-                  ) : (
-                    <span>Click or Drag to Upload Shop License</span>
-                  )}
-                </p>
-              </div>
-            </div>
-
-            <div className="pt-4 flex justify-between items-center border-t border-outline-variant/30">
-              <button 
-                type="button"
-                onClick={handlePrev}
-                className="font-label-md text-label-md text-primary hover:bg-primary/5 px-6 py-3 rounded-xl transition-colors"
-              >
-                Back to Owner Info
-              </button>
-              <button 
-                type="submit"
-                className="bg-primary hover:bg-primary/95 text-on-primary font-label-md text-label-md px-8 py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 flex items-center gap-2"
-              >
-                <span>Submit Application</span>
-                <span className="material-symbols-outlined text-sm">check_circle</span>
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* Bottom helper links */}
-        <div className="text-center mt-6">
-          <p className="font-body-sm text-body-sm text-on-surface-variant">
-            Already have a merchant account?{' '}
-            <button 
-              onClick={() => navigate('/merchant/login')}
-              className="text-primary font-bold hover:underline"
-            >
-              Sign In here
-            </button>
-          </p>
         </div>
       </div>
     </div>

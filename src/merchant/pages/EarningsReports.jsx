@@ -98,7 +98,7 @@ export default function EarningsReports({ navigate, showToast }) {
       <MerchantSidebar currentPath={currentPath} navigate={navigate} />
 
       {/* Main Container */}
-      <div className="flex-grow md:ml-64 flex flex-col">
+      <div className="flex-grow md:ml-[280px] flex flex-col">
         {/* Top Navbar */}
         <MerchantNavbar currentPath={currentPath} navigate={navigate} />
 
@@ -134,7 +134,7 @@ export default function EarningsReports({ navigate, showToast }) {
           {/* Bento grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-scale-up delay-75">
             {/* Balance Hero Card (8 cols) */}
-            <div className="lg:col-span-8 bg-white/70 backdrop-blur-md rounded-2xl p-8 border border-outline-variant/30 shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[180px]">
+            <div className="lg:col-span-8 bg-surface-container backdrop-blur-md rounded-2xl p-8 border border-outline-variant/30 shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[180px]">
               <div className="absolute -right-10 -top-10 w-48 h-48 bg-primary-container rounded-full blur-[80px] opacity-40 pointer-events-none"></div>
               
               <div className="space-y-4">
@@ -156,7 +156,7 @@ export default function EarningsReports({ navigate, showToast }) {
             </div>
 
             {/* Quick Stats Mini Card (4 cols) */}
-            <div className="lg:col-span-4 bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-outline-variant/30 shadow-sm flex flex-col justify-between">
+            <div className="lg:col-span-4 bg-surface-container backdrop-blur-md rounded-2xl p-6 border border-outline-variant/30 shadow-sm flex flex-col justify-between">
               <h3 className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider font-bold">Quick Stats</h3>
               <div className="space-y-4 mt-4">
                 <div className="flex justify-between items-center border-b border-outline-variant/10 pb-3">
@@ -178,7 +178,7 @@ export default function EarningsReports({ navigate, showToast }) {
           </div>
 
           {/* Filters & Search */}
-          <div className="bg-white/70 backdrop-blur-md rounded-xl p-3 border border-outline-variant/30 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4 animate-fade-in delay-150">
+          <div className="bg-surface-container backdrop-blur-md rounded-xl p-3 border border-outline-variant/30 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4 animate-fade-in delay-150">
             <div className="flex items-center bg-surface-container-low rounded-lg px-3 py-2 w-full md:w-auto border border-outline-variant/20 focus-within:border-primary transition-all">
               <span className="material-symbols-outlined text-outline text-lg">search</span>
               <input 
@@ -208,7 +208,7 @@ export default function EarningsReports({ navigate, showToast }) {
           </div>
 
           {/* Transactions List */}
-          <div className="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden animate-slide-in-left delay-200">
+          <div className="bg-surface-container rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden animate-slide-in-left delay-200">
             <div className="px-6 py-4 border-b border-outline-variant/20 bg-surface-container-lowest flex justify-between items-center">
               <h3 className="font-headline-md text-headline-md font-bold text-on-surface text-lg">Reward History</h3>
             </div>

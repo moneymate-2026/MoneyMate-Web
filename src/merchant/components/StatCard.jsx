@@ -9,7 +9,7 @@ export default function StatCard({
   trend 
 }) {
   return (
-    <div className={`bg-white/70 backdrop-blur-md rounded-xl p-4 flex flex-col justify-between border border-outline-variant/30 border-l-4 ${borderClass} shadow-[0_4px_20px_rgba(108,56,248,0.05)]`}>
+    <div className={`bg-surface-container backdrop-blur-md rounded-xl p-4 flex flex-col justify-between border border-outline-variant/30 border-l-4 ${borderClass} shadow-[0_4px_20px_rgba(108,56,248,0.05)]`}>
       <div className="flex justify-between items-start">
         <p className="font-label-md text-label-md text-on-surface-variant">{title}</p>
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${iconColorClass}`}>

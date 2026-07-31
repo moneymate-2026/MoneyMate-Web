@@ -97,7 +97,7 @@ export default function Overview() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white border border-admin-outline-variant rounded-xl p-6 shadow-sm flex flex-col">
+        <div className="lg:col-span-2 bg-admin-surface-container border border-admin-outline-variant rounded-xl p-6 shadow-lg flex flex-col">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-admin-on-surface">Revenue Trend</h3>
             <select className="bg-admin-surface-container text-admin-on-surface text-sm rounded-md px-3 py-1.5 border border-admin-outline-variant outline-none focus:border-admin-primary">
@@ -111,24 +111,24 @@ export default function Overview() {
               <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3525cd" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#3525cd" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e1ee" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#777587', fontSize: 12 }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#777587', fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#2b2f3a" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8b92a5', fontSize: 12 }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8b92a5', fontSize: 12 }} />
                 <Tooltip 
-                  contentStyle={{ borderRadius: '8px', border: '1px solid #e4e1ee', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  itemStyle={{ color: '#3525cd', fontWeight: 'bold' }}
+                  contentStyle={{ backgroundColor: '#1b1e26', borderRadius: '8px', border: '1px solid #2b2f3a', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.3)' }}
+                  itemStyle={{ color: '#3b82f6', fontWeight: 'bold' }}
                 />
-                <Area type="monotone" dataKey="revenue" stroke="#3525cd" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
+                <Area type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="bg-white border border-admin-outline-variant rounded-xl p-6 shadow-sm">
+        <div className="bg-admin-surface-container border border-admin-outline-variant rounded-xl p-6 shadow-lg">
           <h3 className="text-lg font-semibold text-admin-on-surface mb-6">Action Items</h3>
           <div className="space-y-4">
             {[
@@ -156,7 +156,7 @@ export default function Overview() {
         </div>
       </div>
 
-      <div className="bg-white border border-admin-outline-variant rounded-xl shadow-sm overflow-hidden flex flex-col">
+      <div className="bg-admin-surface-container border border-admin-outline-variant rounded-xl shadow-lg overflow-hidden flex flex-col">
         <div className="p-6 border-b border-admin-outline-variant flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 className="text-lg font-semibold text-admin-on-surface">Recent Transactions</h3>

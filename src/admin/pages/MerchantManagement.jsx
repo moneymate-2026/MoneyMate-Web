@@ -370,7 +370,7 @@ export default function MerchantManagement() {
             <p className="font-bold text-admin-on-surface hover:text-admin-primary transition-colors cursor-pointer" onClick={() => setSelectedMerchant(row)}>
               {row.businessName}
             </p>
-            <span className="inline-block mt-0.5 px-2 py-0.2 bg-slate-100 text-slate-600 rounded text-[10px] font-semibold uppercase">
+            <span className="inline-block mt-0.5 px-2 py-0.2 bg-admin-surface-container-highest text-slate-600 rounded text-[10px] font-semibold uppercase">
               {row.category}
             </span>
           </div>
@@ -393,7 +393,7 @@ export default function MerchantManagement() {
         <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
           row.tier === "Enterprise" ? "bg-indigo-50 text-indigo-800 border-indigo-200" :
           row.tier === "Premium" ? "bg-amber-50 text-amber-800 border-amber-300 ring-1 ring-amber-400/50" :
-          "bg-slate-50 text-slate-700 border-slate-200"
+          "bg-admin-surface-container-high text-admin-on-surface border-admin-outline-variant"
         }`}>
           {row.tier === "Enterprise" ? "👑 Enterprise" : row.tier === "Premium" ? "⭐ Premium" : "Basic"}
         </span>
@@ -444,7 +444,7 @@ export default function MerchantManagement() {
           </button>
           <button 
             onClick={(e) => handleOpenEdit(row, e)}
-            className="p-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-lg transition-all" 
+            className="p-1.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white rounded-lg transition-all" 
             title="Edit Merchant Details"
           >
             <Edit3 className="w-4 h-4" />
@@ -452,7 +452,7 @@ export default function MerchantManagement() {
           {row.kycStatus === "Pending" && (
             <button 
               onClick={(e) => handleApproveKYC(row.id, e)}
-              className="p-1.5 bg-green-50 text-green-600 hover:bg-green-600 hover:text-white rounded-lg transition-all" 
+              className="p-1.5 bg-green-500/10 text-green-400 hover:bg-green-500 hover:text-white rounded-lg transition-all" 
               title="Approve KYC & Activate"
             >
               <UserCheck className="w-4 h-4" />
@@ -462,8 +462,8 @@ export default function MerchantManagement() {
             onClick={(e) => handleToggleStatus(row.id, row.status, e)}
             className={`p-1.5 rounded-lg transition-all ${
               row.status === "Active" 
-                ? "bg-red-50 text-red-600 hover:bg-red-600 hover:text-white" 
-                : "bg-green-50 text-green-600 hover:bg-green-600 hover:text-white"
+                ? "bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white" 
+                : "bg-green-500/10 text-green-400 hover:bg-green-500 hover:text-white"
             }`}
             title={row.status === "Active" ? "Suspend Merchant" : "Activate Merchant"}
           >
@@ -471,7 +471,7 @@ export default function MerchantManagement() {
           </button>
           <button 
             onClick={(e) => handleOpenDelete(row, e)}
-            className="p-1.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-lg transition-all" 
+            className="p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-lg transition-all" 
             title="Delete Merchant Store"
           >
             <Trash2 className="w-4 h-4" />
@@ -512,7 +512,7 @@ export default function MerchantManagement() {
             className={`px-3.5 py-2 border rounded-xl font-semibold shadow-sm transition-all flex items-center gap-2 text-xs sm:text-sm ${
               statusFilter === "Pending KYC" 
                 ? "bg-amber-500 text-white border-amber-600 shadow-amber-500/20 shadow-md" 
-                : "bg-white border-admin-outline-variant text-admin-on-surface hover:bg-admin-surface-container-low"
+                : "bg-admin-surface-container border-admin-outline-variant text-admin-on-surface hover:bg-admin-surface-container-low"
             }`}
           >
             <ShieldAlert className="w-4 h-4 text-amber-500 shrink-0" />
@@ -521,9 +521,9 @@ export default function MerchantManagement() {
           
           <button 
             onClick={handleExportPDF}
-            className="px-3.5 py-2 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-xl font-semibold shadow-sm hover:bg-indigo-100 transition-all flex items-center gap-2 text-xs sm:text-sm"
+            className="px-3.5 py-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-xl font-semibold shadow-sm hover:bg-indigo-500/20 transition-all flex items-center gap-2 text-xs sm:text-sm"
           >
-            <Printer className="w-4 h-4 text-indigo-600 shrink-0" />
+            <Printer className="w-4 h-4 text-indigo-400 shrink-0" />
             <span>Export PDF</span>
           </button>
 
@@ -569,7 +569,7 @@ export default function MerchantManagement() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white border border-admin-outline-variant rounded-2xl shadow-sm p-5 space-y-4">
+      <div className="bg-admin-surface-container border border-admin-outline-variant rounded-2xl shadow-sm p-5 space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex-1 max-w-lg flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-admin-outline-variant/60 focus-within:border-admin-primary focus-within:ring-2 focus-within:ring-admin-primary/20 transition-all bg-admin-surface-container-lowest">
             <Search className="w-4 h-4 text-admin-primary shrink-0" />
@@ -617,7 +617,7 @@ export default function MerchantManagement() {
                 className={`px-2.5 py-1 rounded-md transition-all ${
                   tierFilter === tier 
                     ? "bg-admin-primary text-white" 
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    : "bg-admin-surface-container-highest text-slate-600 hover:bg-admin-surface-container-highest"
                 }`}
               >
                 {tier}
@@ -634,7 +634,7 @@ export default function MerchantManagement() {
                 className={`px-2.5 py-1 rounded-md transition-all ${
                   categoryFilter === cat 
                     ? "bg-indigo-600 text-white" 
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    : "bg-admin-surface-container-highest text-slate-600 hover:bg-admin-surface-container-highest"
                 }`}
               >
                 {cat}
@@ -645,7 +645,7 @@ export default function MerchantManagement() {
       </div>
 
       {/* Main Table Container with Box Scrolling (Max Height 520px) */}
-      <div className="bg-white border border-admin-outline-variant rounded-2xl shadow-sm overflow-hidden flex flex-col">
+      <div className="bg-admin-surface-container border border-admin-outline-variant rounded-2xl shadow-sm overflow-hidden flex flex-col">
         {loading ? (
           <div className="p-16 flex flex-col items-center justify-center text-admin-on-surface-variant">
             <div className="w-9 h-9 border-4 border-admin-outline-variant border-t-admin-primary rounded-full animate-spin mb-4"></div>
@@ -677,20 +677,20 @@ export default function MerchantManagement() {
       {/* CREATE MERCHANT MODAL */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden border border-admin-outline-variant animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
-            <div className="p-6 border-b border-admin-outline-variant flex justify-between items-center bg-slate-50 shrink-0">
+          <div className="bg-admin-surface-container rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden border border-admin-outline-variant animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+            <div className="p-6 border-b border-admin-outline-variant flex justify-between items-center bg-admin-surface-container-high shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-admin-primary/10 text-admin-primary flex items-center justify-center font-bold">
                   <Plus className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="font-extrabold text-lg text-admin-on-surface">Create New Merchant Store</h3>
-                  <span className="text-xs text-slate-500">Register a new shop owner and storefront on the platform</span>
+                  <span className="text-xs text-admin-on-surface-variant">Register a new shop owner and storefront on the platform</span>
                 </div>
               </div>
               <button 
                 onClick={() => setIsCreateModalOpen(false)}
-                className="p-1.5 hover:bg-slate-200 rounded-full text-slate-500 hover:text-slate-800 transition-colors"
+                className="p-1.5 hover:bg-admin-surface-container-highest rounded-full text-admin-on-surface-variant hover:text-admin-on-surface transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -800,7 +800,7 @@ export default function MerchantManagement() {
                 <button 
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2 border border-slate-300 text-slate-700 font-semibold text-xs rounded-xl hover:bg-slate-100 transition-colors"
+                  className="px-4 py-2 border border-admin-outline-variant text-admin-on-surface font-semibold text-xs rounded-xl hover:bg-admin-surface-container-highest transition-colors"
                 >
                   Cancel
                 </button>
@@ -819,20 +819,20 @@ export default function MerchantManagement() {
       {/* EDIT MERCHANT MODAL */}
       {editingMerchant && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden border border-admin-outline-variant animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
-            <div className="p-6 border-b border-admin-outline-variant flex justify-between items-center bg-slate-50 shrink-0">
+          <div className="bg-admin-surface-container rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden border border-admin-outline-variant animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+            <div className="p-6 border-b border-admin-outline-variant flex justify-between items-center bg-admin-surface-container-high shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
                   <Edit3 className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="font-extrabold text-lg text-admin-on-surface">Edit Store: {editingMerchant.businessName}</h3>
-                  <span className="font-mono text-xs bg-slate-200 px-2 py-0.5 rounded text-slate-700">{editingMerchant.id}</span>
+                  <span className="font-mono text-xs bg-admin-surface-container-highest px-2 py-0.5 rounded text-admin-on-surface">{editingMerchant.id}</span>
                 </div>
               </div>
               <button 
                 onClick={() => setEditingMerchant(null)}
-                className="p-1.5 hover:bg-slate-200 rounded-full text-slate-500 hover:text-slate-800 transition-colors"
+                className="p-1.5 hover:bg-admin-surface-container-highest rounded-full text-admin-on-surface-variant hover:text-admin-on-surface transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -938,7 +938,7 @@ export default function MerchantManagement() {
                 <button 
                   type="button"
                   onClick={() => setEditingMerchant(null)}
-                  className="px-4 py-2 border border-slate-300 text-slate-700 font-semibold text-xs rounded-xl hover:bg-slate-100 transition-colors"
+                  className="px-4 py-2 border border-admin-outline-variant text-admin-on-surface font-semibold text-xs rounded-xl hover:bg-admin-surface-container-highest transition-colors"
                 >
                   Cancel
                 </button>
@@ -957,7 +957,7 @@ export default function MerchantManagement() {
       {/* DELETE CONFIRMATION MODAL */}
       {deletingMerchant && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border border-red-200 animate-in zoom-in-95 duration-200 p-6 space-y-5">
+          <div className="bg-admin-surface-container rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border border-red-200 animate-in zoom-in-95 duration-200 p-6 space-y-5">
             <div className="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center mx-auto">
               <AlertTriangle className="w-6 h-6" />
             </div>
@@ -973,7 +973,7 @@ export default function MerchantManagement() {
               <button 
                 type="button"
                 onClick={() => setDeletingMerchant(null)}
-                className="flex-1 py-2.5 border border-slate-300 text-slate-700 font-semibold text-xs rounded-xl hover:bg-slate-100 transition-colors"
+                className="flex-1 py-2.5 border border-admin-outline-variant text-admin-on-surface font-semibold text-xs rounded-xl hover:bg-admin-surface-container-highest transition-colors"
               >
                 Cancel
               </button>
@@ -992,9 +992,9 @@ export default function MerchantManagement() {
       {/* Merchant Details Slide-Over Modal */}
       {selectedMerchant && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex justify-end animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-2xl h-full shadow-2xl overflow-y-auto flex flex-col animate-in slide-in-from-right duration-300 border-l border-admin-outline-variant">
+          <div className="bg-admin-surface-container w-full max-w-2xl h-full shadow-2xl overflow-y-auto flex flex-col animate-in slide-in-from-right duration-300 border-l border-admin-outline-variant">
             {/* Modal Header */}
-            <div className="p-6 border-b border-admin-outline-variant sticky top-0 bg-white/90 backdrop-blur-md z-10 flex items-center justify-between">
+            <div className="p-6 border-b border-admin-outline-variant sticky top-0 bg-admin-surface-container/90 backdrop-blur-md z-10 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-admin-primary/10 text-admin-primary flex items-center justify-center font-bold text-lg shrink-0 shadow-sm">
                   <Store className="w-6 h-6" />
@@ -1002,7 +1002,7 @@ export default function MerchantManagement() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-xl font-extrabold text-admin-on-surface">{selectedMerchant.businessName}</h3>
-                    <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded font-bold">{selectedMerchant.id}</span>
+                    <span className="font-mono text-xs bg-admin-surface-container-highest px-2 py-0.5 rounded font-bold">{selectedMerchant.id}</span>
                   </div>
                   <p className="text-xs text-admin-on-surface-variant flex items-center gap-1 mt-0.5">
                     <MapPin className="w-3.5 h-3.5 text-admin-primary" /> {selectedMerchant.address}
@@ -1020,7 +1020,7 @@ export default function MerchantManagement() {
                 </button>
                 <button 
                   onClick={() => setSelectedMerchant(null)}
-                  className="p-2 text-admin-on-surface-variant hover:text-admin-on-surface rounded-full hover:bg-slate-100 transition-colors"
+                  className="p-2 text-admin-on-surface-variant hover:text-admin-on-surface rounded-full hover:bg-admin-surface-container-highest transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1068,7 +1068,7 @@ export default function MerchantManagement() {
 
               {/* Owner and Subscription Plan Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="border border-admin-outline-variant rounded-xl p-4 space-y-3 bg-white">
+                <div className="border border-admin-outline-variant rounded-xl p-4 space-y-3 bg-admin-surface-container">
                   <h4 className="font-bold text-sm text-admin-on-surface flex items-center gap-2 border-b pb-2">
                     <UserCheck className="w-4 h-4 text-admin-primary" /> Owner Information
                   </h4>
@@ -1086,7 +1086,7 @@ export default function MerchantManagement() {
                   </div>
                 </div>
 
-                <div className="border border-admin-outline-variant rounded-xl p-4 space-y-3 bg-white">
+                <div className="border border-admin-outline-variant rounded-xl p-4 space-y-3 bg-admin-surface-container">
                   <div className="flex justify-between items-center border-b pb-2">
                     <h4 className="font-bold text-sm text-admin-on-surface flex items-center gap-2">
                       <Award className="w-4 h-4 text-amber-500" /> Subscription Plan
@@ -1106,7 +1106,7 @@ export default function MerchantManagement() {
                         className={`px-2 py-1 text-[11px] font-bold rounded-lg border transition-all ${
                           selectedMerchant.tier === t 
                             ? "bg-admin-primary text-white border-admin-primary opacity-60 cursor-default" 
-                            : "bg-slate-50 hover:bg-slate-200 text-slate-700 border-slate-200"
+                            : "bg-admin-surface-container-high hover:bg-admin-surface-container-highest text-admin-on-surface border-admin-outline-variant"
                         }`}
                       >
                         {t}
@@ -1117,7 +1117,7 @@ export default function MerchantManagement() {
               </div>
 
               {/* KYC Documents Section */}
-              <div className="border border-admin-outline-variant rounded-xl p-5 space-y-4 bg-white shadow-sm">
+              <div className="border border-admin-outline-variant rounded-xl p-5 space-y-4 bg-admin-surface-container shadow-sm">
                 <div className="flex justify-between items-center">
                   <h4 className="font-bold text-sm text-admin-on-surface flex items-center gap-2">
                     <FileText className="w-4 h-4 text-indigo-600" /> Submitted KYC Verification Documents
@@ -1128,10 +1128,10 @@ export default function MerchantManagement() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                  <div className="p-3 rounded-xl bg-admin-surface-container-high border border-admin-outline-variant flex flex-col justify-between">
                     <div>
-                      <span className="text-[10px] font-bold uppercase text-slate-500">Business License</span>
-                      <p className="font-mono text-xs font-semibold text-slate-800 mt-1 truncate">
+                      <span className="text-[10px] font-bold uppercase text-admin-on-surface-variant">Business License</span>
+                      <p className="font-mono text-xs font-semibold text-admin-on-surface mt-1 truncate">
                         {selectedMerchant.kycDocs?.businessLicense || "LIC-DOC.pdf"}
                       </p>
                     </div>
@@ -1143,10 +1143,10 @@ export default function MerchantManagement() {
                     </button>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                  <div className="p-3 rounded-xl bg-admin-surface-container-high border border-admin-outline-variant flex flex-col justify-between">
                     <div>
-                      <span className="text-[10px] font-bold uppercase text-slate-500">Tax EIN / GST</span>
-                      <p className="font-mono text-xs font-semibold text-slate-800 mt-1 truncate">
+                      <span className="text-[10px] font-bold uppercase text-admin-on-surface-variant">Tax EIN / GST</span>
+                      <p className="font-mono text-xs font-semibold text-admin-on-surface mt-1 truncate">
                         {selectedMerchant.kycDocs?.taxId || "EIN-VERIFIED"}
                       </p>
                     </div>
@@ -1155,10 +1155,10 @@ export default function MerchantManagement() {
                     </span>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                  <div className="p-3 rounded-xl bg-admin-surface-container-high border border-admin-outline-variant flex flex-col justify-between">
                     <div>
-                      <span className="text-[10px] font-bold uppercase text-slate-500">Settlement Bank</span>
-                      <p className="font-mono text-xs font-semibold text-slate-800 mt-1 truncate">
+                      <span className="text-[10px] font-bold uppercase text-admin-on-surface-variant">Settlement Bank</span>
+                      <p className="font-mono text-xs font-semibold text-admin-on-surface mt-1 truncate">
                         {selectedMerchant.kycDocs?.bankAccount || "Bank Acc ***"}
                       </p>
                     </div>
@@ -1187,7 +1187,7 @@ export default function MerchantManagement() {
               </div>
 
               {/* Financials & QR Activity */}
-              <div className="border border-admin-outline-variant rounded-xl p-5 space-y-3 bg-white">
+              <div className="border border-admin-outline-variant rounded-xl p-5 space-y-3 bg-admin-surface-container">
                 <h4 className="font-bold text-sm text-admin-on-surface flex items-center gap-2">
                   <QrCode className="w-4 h-4 text-admin-primary" /> Store QR & Volume Analytics
                 </h4>
@@ -1209,7 +1209,7 @@ export default function MerchantManagement() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-admin-outline-variant bg-slate-50 flex justify-between items-center">
+            <div className="p-4 border-t border-admin-outline-variant bg-admin-surface-container-high flex justify-between items-center">
               <button 
                 onClick={(e) => handleOpenDelete(selectedMerchant, e)}
                 className="px-4 py-2 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-xl font-bold text-xs transition-all flex items-center gap-1.5"
@@ -1218,7 +1218,7 @@ export default function MerchantManagement() {
               </button>
               <button 
                 onClick={() => setSelectedMerchant(null)}
-                className="px-5 py-2 bg-white border border-slate-300 text-slate-700 rounded-xl font-semibold text-xs hover:bg-slate-100 transition-colors"
+                className="px-5 py-2 bg-admin-surface-container border border-admin-outline-variant text-admin-on-surface rounded-xl font-semibold text-xs hover:bg-admin-surface-container-highest transition-colors"
               >
                 Close Panel
               </button>

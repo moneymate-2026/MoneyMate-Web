@@ -2,8 +2,8 @@ import { Bell, Search } from "lucide-react";
 
 export default function Header() {
   return (
-    <header className="h-[64px] bg-white border-b border-admin-outline-variant flex items-center justify-between px-6 shrink-0 sticky top-0 z-10 font-[Inter]">
-      <div className="flex-1 max-w-xl flex items-center gap-2 px-3 py-2 rounded-lg bg-admin-surface-container-low border border-admin-outline-variant/50 focus-within:border-admin-primary focus-within:ring-2 focus-within:ring-admin-primary/20 transition-all">
+    <header className="h-[72px] bg-admin-surface-container border-b border-admin-outline-variant flex items-center justify-between px-6 shrink-0 sticky top-0 z-10 shadow-sm">
+      <div className="flex-1 max-w-xl flex items-center gap-2 px-4 py-2.5 rounded-xl bg-admin-background border border-admin-outline-variant/30 focus-within:border-admin-primary focus-within:ring-2 focus-within:ring-admin-primary/20 transition-all shadow-inner">
         <Search className="w-4 h-4 text-admin-on-surface-variant" />
         <input 
           type="text"
@@ -13,9 +13,9 @@ export default function Header() {
       </div>
       
       <div className="flex items-center gap-4 ml-4">
-        <button className="relative p-2 rounded-full text-admin-on-surface-variant hover:bg-admin-surface-container transition-colors">
+        <button className="relative p-2 rounded-full text-admin-on-surface-variant hover:bg-admin-surface-container-high hover:text-admin-on-surface transition-colors">
           <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-admin-error border-2 border-white"></span>
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-admin-error border-2 border-admin-surface-container"></span>
         </button>
       </div>
     </header>
