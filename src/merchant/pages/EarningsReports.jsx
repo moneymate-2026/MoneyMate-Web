@@ -18,26 +18,26 @@ export default function EarningsReports({ navigate, showToast }) {
   useEffect(() => {
     const fetchEarningsData = async () => {
       try {
-        const response = await gatewayClient.getDashboardData();
-        if (response.success && response.data) {
-          setBalance(response.data.balance || 0);
-          
-          const txs = response.data.transactions || [];
+        const summaryRes = await gatewayClient.getRewardSummary();
+        if (summaryRes.success && summaryRes.data) {
+          setBalance(summaryRes.data.available_balance || 0);
+          setTotalScans(summaryRes.data.total_scans || 0);
+          setPremiumPoints(summaryRes.data.premium_points || 0);
+        }
+        
+        const historyRes = await gatewayClient.getRewardHistory();
+        if (historyRes.success && historyRes.data) {
+          const txs = Array.isArray(historyRes.data) ? historyRes.data : (historyRes.data.transactions || []);
           const mappedHistory = txs.map((tx, idx) => ({
-            title: tx.reward === '$2.40' ? 'Premium VIP Scan' : 'Storefront Scan Campaign',
-            id: `#QR-882${idx}`,
-            time: tx.time,
-            amount: parseFloat(tx.amount.replace('$', '')),
-            status: tx.status,
-            icon: tx.reward === '$2.40' ? 'star' : 'qr_code',
-            premium: tx.reward === '$2.40',
+            title: tx.campaign_name || tx.transaction_type || 'Storefront Scan',
+            id: tx.display_id || `#QR-${idx}`,
+            time: tx.formatted_date || tx.created_at || 'Recently',
+            amount: typeof tx.amount === 'number' ? tx.amount : parseFloat((tx.amount || '0').toString().replace('$', '')),
+            status: tx.status || 'Completed',
+            icon: tx.transaction_type === 'premium' ? 'star' : 'qr_code',
+            premium: tx.transaction_type === 'premium',
           }));
           setHistory(mappedHistory);
-
-          const customerStat = response.data.stats?.find(s => s.title === "Customers Rewarded");
-          if (customerStat) {
-            setTotalScans(parseInt(customerStat.value.replace(/,/g, '')) || 1204);
-          }
         }
       } catch (error) {
         console.error('Failed to load earnings data:', error);
@@ -147,7 +147,7 @@ export default function EarningsReports({ navigate, showToast }) {
                 
                 <div className="flex items-baseline gap-3 pt-2">
                   <span className="font-display-lg text-display-lg text-primary font-bold text-4xl">${balance.toFixed(2)}</span>
-                  <span className="font-body-md text-body-md text-tertiary font-semibold bg-tertiary-fixed/30 px-2 py-1 rounded-lg flex items-center gap-1 text-sm">
+                  <span className="font-body-md text-body-md text-emerald-600 font-semibold bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg flex items-center gap-1 text-sm">
                     <span className="material-symbols-outlined text-xs">trending_up</span>
                     <span>+12% this week</span>
                   </span>
@@ -242,7 +242,7 @@ export default function EarningsReports({ navigate, showToast }) {
                     <div className="text-right flex items-center gap-4">
                       <span className={`font-label-sm text-label-sm px-2.5 py-1 rounded-md hidden sm:inline-block ${
                         item.status === 'Settled' 
-                          ? 'bg-tertiary-fixed/30 text-tertiary-container' 
+                          ? 'bg-emerald-50 border border-emerald-200 text-emerald-600' 
                           : 'bg-surface-variant text-on-surface-variant'
                       }`}>
                         {item.status}

@@ -9,7 +9,8 @@ export default function Dashboard({ navigate, showToast }) {
   const currentPath = '/merchant/dashboard';
   const [stats, setStats] = useState([]);
   const [transactions, setTransactions] = useState([]);
-  const [businessName, setBusinessName] = useState('Apex Innovations LLC');
+  const [campaigns, setCampaigns] = useState([]);
+  const [businessName, setBusinessName] = useState('Your Business');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,11 +20,12 @@ export default function Dashboard({ navigate, showToast }) {
         if (response.success && response.data) {
           setStats(response.data.stats || []);
           setTransactions(response.data.transactions || []);
+          setCampaigns(response.data.campaigns || []);
         }
         
         const profileResponse = await gatewayClient.getProfile();
         if (profileResponse.success && profileResponse.data) {
-          setBusinessName(profileResponse.data.businessName || 'Apex Innovations LLC');
+          setBusinessName(profileResponse.data.businessName || 'Your Business');
         }
       } catch (error) {
         console.error('Error loading dashboard details:', error);
@@ -51,22 +53,18 @@ export default function Dashboard({ navigate, showToast }) {
       {/* Desktop Sidebar */}
       <MerchantSidebar currentPath={currentPath} navigate={navigate} />
 
-      {/* Main Container */}
-      <div className="flex-grow md:ml-[280px] flex flex-col">
+      <div className="flex-grow md:ml-[280px] flex flex-col min-w-0">
         {/* Top Navbar */}
         <MerchantNavbar currentPath={currentPath} navigate={navigate} />
 
         {/* Page Content */}
-        <main className="p-6 md:p-8 space-y-8 max-w-7xl w-full mx-auto pb-24 md:pb-8 flex-grow">
+        <main className="p-6 md:px-12 md:py-10 space-y-8 w-full pb-24 md:pb-8 flex-grow">
           {/* Welcome Banner */}
           <div className="bg-surface-container backdrop-blur-md p-6 rounded-2xl border border-outline-variant/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm animate-fade-in">
             <div>
               <h2 className="font-headline-lg text-headline-lg font-bold text-on-background text-2xl md:text-3xl">
                 Welcome back, {businessName}
               </h2>
-              <p className="font-body-md text-body-md text-on-surface-variant mt-1">
-                Manage your store payments, reward analytics, and active campaigns all from one dashboard.
-              </p>
             </div>
             <button 
               onClick={() => navigate('/merchant/payment-qr')}
@@ -122,7 +120,7 @@ export default function Dashboard({ navigate, showToast }) {
                         </td>
                         <td className="p-4 text-right font-semibold">{tx.amount}</td>
                         <td className="p-4 text-right">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-tertiary/10 text-tertiary font-label-sm text-label-sm">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold text-xs border border-primary/20">
                             {tx.reward}
                           </span>
                         </td>
@@ -146,14 +144,18 @@ export default function Dashboard({ navigate, showToast }) {
                   </p>
                 </div>
                 <div className="space-y-3 pt-4 border-t border-outline-variant/20">
-                  <div className="flex justify-between items-center py-2 bg-surface-container-low px-4 rounded-xl border border-outline-variant/20">
-                    <span className="font-body-sm text-body-sm text-on-background font-medium">Weekend Special</span>
-                    <span className="bg-tertiary-container/20 text-tertiary-container font-label-sm text-xs px-2.5 py-0.5 rounded-full border border-tertiary-container/30">Active</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 bg-surface-container-low px-4 rounded-xl border border-outline-variant/20">
-                    <span className="font-body-sm text-body-sm text-on-background font-medium">Loyalty Tier 1</span>
-                    <span className="bg-tertiary-container/20 text-tertiary-container font-label-sm text-xs px-2.5 py-0.5 rounded-full border border-tertiary-container/30">Active</span>
-                  </div>
+                  {campaigns.length === 0 ? (
+                    <div className="text-center py-4 text-on-surface-variant font-label-sm">No active campaigns</div>
+                  ) : (
+                    campaigns.map((camp, idx) => (
+                      <div key={camp.id || idx} className="flex justify-between items-center py-2 bg-surface-container-low px-4 rounded-xl border border-outline-variant/20">
+                        <span className="font-body-sm text-body-sm text-on-background font-medium">{camp.name}</span>
+                        <span className={`font-bold text-xs px-2.5 py-0.5 rounded-full border ${camp.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-surface-container-highest text-on-surface-variant border-outline-variant/30'}`}>
+                          {camp.status || 'Active'}
+                        </span>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
               <button 

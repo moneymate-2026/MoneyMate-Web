@@ -15,8 +15,10 @@ export default function Register({ navigate, showToast }) {
     password: '',
     confirmPassword: '',
     aadharNumber: '',
-    aadharFile: null,
-    shopLicenseFile: null,
+    aadharFileBase64: '',
+    aadharFileName: '',
+    shopLicenseFileBase64: '',
+    shopLicenseFileName: '',
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -30,10 +32,25 @@ export default function Register({ navigate, showToast }) {
   };
 
   const handleFileChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.files[0] ? e.target.files[0].name : null,
-    });
+    const file = e.target.files[0];
+    const fieldName = e.target.name;
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({
+          ...prev,
+          [`${fieldName}Base64`]: reader.result,
+          [`${fieldName}Name`]: file.name,
+        }));
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [`${fieldName}Base64`]: '',
+        [`${fieldName}Name`]: '',
+      }));
+    }
   };
 
   const handleNext1 = (e) => {
@@ -60,11 +77,11 @@ export default function Register({ navigate, showToast }) {
       if (showToast) showToast("Please enter a valid 12-digit Aadhaar Card Number!", "error");
       return;
     }
-    if (!formData.aadharFile) {
+    if (!formData.aadharFileBase64) {
       if (showToast) showToast("Please upload your Aadhaar Card document!", "error");
       return;
     }
-    if (!formData.shopLicenseFile) {
+    if (!formData.shopLicenseFileBase64) {
       if (showToast) showToast("Please upload your Shop License document!", "error");
       return;
     }
@@ -232,7 +249,7 @@ export default function Register({ navigate, showToast }) {
                       <input type="file" name="aadharFile" onChange={handleFileChange} accept=".pdf,image/*" required className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
                       <span className="material-symbols-outlined text-slate-300 group-hover:text-[#6366f1] text-2xl mb-1 transition-colors">upload_file</span>
                       <p className="text-[10px] font-bold text-slate-500 text-center uppercase tracking-wider">
-                        {formData.aadharFile ? <span className="text-[#6366f1]">{formData.aadharFile}</span> : "Click to Upload"}
+                        {formData.aadharFileName ? <span className="text-[#6366f1]">{formData.aadharFileName}</span> : "Click to Upload"}
                       </p>
                     </div>
                   </div>
@@ -243,7 +260,7 @@ export default function Register({ navigate, showToast }) {
                       <input type="file" name="shopLicenseFile" onChange={handleFileChange} accept=".pdf,image/*" required className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
                       <span className="material-symbols-outlined text-slate-300 group-hover:text-[#6366f1] text-2xl mb-1 transition-colors">storefront</span>
                       <p className="text-[10px] font-bold text-slate-500 text-center uppercase tracking-wider">
-                        {formData.shopLicenseFile ? <span className="text-[#6366f1]">{formData.shopLicenseFile}</span> : "Click to Upload"}
+                        {formData.shopLicenseFileName ? <span className="text-[#6366f1]">{formData.shopLicenseFileName}</span> : "Click to Upload"}
                       </p>
                     </div>
                   </div>

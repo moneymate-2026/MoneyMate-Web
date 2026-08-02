@@ -20,7 +20,6 @@ function cn(...inputs) {
 export default function MerchantSidebar({ currentPath, navigate }) {
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/merchant/dashboard' },
-    { name: 'Rewards', icon: Wallet, path: '/merchant/earnings-reports' },
     { name: 'Offers', icon: Tag, path: '/merchant/create-offer' },
     { name: 'QR Manager', icon: QrCode, path: '/merchant/payment-qr' },
     { name: 'Subscriptions', icon: Crown, path: '/merchant/choose-plan' },

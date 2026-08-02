@@ -176,7 +176,7 @@ export default function KYCVerification() {
           <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto opacity-80" />
           <h3 className="font-bold text-lg text-admin-on-surface">All caught up!</h3>
           <p className="text-sm text-admin-on-surface-variant max-w-sm mx-auto">
-            No merchant applications matching the selected "{filter}" criteria were found.
+            No merchant applications matching the selected &quot;{filter}&quot; criteria were found.
           </p>
         </div>
       ) : (

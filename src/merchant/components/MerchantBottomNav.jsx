@@ -1,10 +1,10 @@
 import React from 'react';
-import { Home, LineChart, Wallet, User } from 'lucide-react';
+import { Home, Tag, Wallet, User } from 'lucide-react';
 
 export default function MerchantBottomNav({ currentPath, navigate }) {
   const navItems = [
     { name: 'Home', icon: Home, path: '/merchant/dashboard' },
-    { name: 'Analytics', icon: LineChart, path: '/merchant/earnings-reports' },
+    { name: 'Offers', icon: Tag, path: '/merchant/create-offer' },
     { name: 'Wallet', icon: Wallet, path: '/merchant/payment-qr' },
     { name: 'Profile', icon: User, path: '/merchant/profile' },
   ];

@@ -70,7 +70,7 @@ export default function VerificationPending({ navigate }) {
 
         {/* Status notification */}
         {notification && (
-          <div className="bg-tertiary/10 text-tertiary border border-tertiary/20 p-3 rounded-xl font-label-md text-label-md animate-bounce">
+          <div className="bg-emerald-50 text-emerald-600 border border-emerald-200 p-3 rounded-xl font-label-md text-label-md animate-bounce">
             {notification}
           </div>
         )}

@@ -2,30 +2,43 @@ import React, { useState, useEffect } from 'react';
 import { gatewayClient } from '../../api/gatewayClient';
 
 export default function MerchantNavbar({ currentPath, navigate }) {
-  const defaultAvatar = "https://lh3.googleusercontent.com/aida-public/AB6AXuDq4xO_uw4wbTgmKt6J4LUnwjLjFTBJAjuoAVVAYun-29iUpkYk-p41vg4a8VnMyoMkkWrUEbY7GXzE-7chiP8LCFoZMtprtB0ISz03hoTtC4eOurjfn3wwRLpV2Ddrdl6QO9MPA4YKsjRlTgI8n2yh4s7dHoRQRR5qB-QXUz0FLGKcO2kMwc13vppnqC-Td_Km0ghmpA_6MV3T68cMXMvDcPAF0tCErk8TzNmsNh2ioNEDIe_ePaUT";
-  const [profileImage, setProfileImage] = useState(defaultAvatar);
+  const [profileImage, setProfileImage] = useState('');
+  const [businessName, setBusinessName] = useState('');
+  const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
-    const loadProfileImage = async () => {
+    const loadProfileData = async () => {
       try {
         const response = await gatewayClient.getProfile();
-        if (response && response.success && response.data && response.data.profileImage) {
-          setProfileImage(response.data.profileImage);
+        if (response && response.success && response.data) {
+          if (response.data.profileImage) {
+            setProfileImage(response.data.profileImage);
+          } else {
+            setProfileImage('');
+          }
+          if (response.data.businessName) {
+            setBusinessName(response.data.businessName);
+          }
+          
+          if (response.data.plan) {
+            const p = response.data.plan.toLowerCase();
+            setIsPremium(p === 'growth' || p === 'enterprise');
+          }
         } else {
-          setProfileImage(defaultAvatar);
+          setProfileImage('');
         }
       } catch (error) {
-        console.error('Failed to load profile image in navbar:', error);
+        console.error('Failed to load profile data in navbar:', error);
       }
     };
 
-    loadProfileImage();
+    loadProfileData();
 
     const handleProfileUpdated = (e) => {
       if (e.detail && e.detail.profileImage !== undefined) {
-        setProfileImage(e.detail.profileImage || defaultAvatar);
+        setProfileImage(e.detail.profileImage || '');
       } else {
-        loadProfileImage();
+        loadProfileData();
       }
     };
 
@@ -37,12 +50,12 @@ export default function MerchantNavbar({ currentPath, navigate }) {
 
     window.addEventListener('profileUpdated', handleProfileUpdated);
     window.addEventListener('profileImagePreview', handleProfilePreview);
-    window.addEventListener('storage', loadProfileImage);
+    window.addEventListener('storage', loadProfileData);
 
     return () => {
       window.removeEventListener('profileUpdated', handleProfileUpdated);
       window.removeEventListener('profileImagePreview', handleProfilePreview);
-      window.removeEventListener('storage', loadProfileImage);
+      window.removeEventListener('storage', loadProfileData);
     };
   }, []);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -77,9 +90,14 @@ export default function MerchantNavbar({ currentPath, navigate }) {
         <div className="flex items-center gap-4">
           <button 
             onClick={() => navigate('/merchant/choose-plan')}
-            className="bg-gradient-to-r from-secondary-container to-secondary-fixed text-on-secondary-container font-label-md text-label-md px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all hover:scale-[1.02] active:scale-95"
+            className={`font-label-md text-label-md px-4 py-2 rounded-lg shadow-sm transition-all flex items-center gap-1.5 ${
+              isPremium 
+                ? 'bg-surface-variant text-primary border border-primary/20 hover:bg-primary/5 cursor-pointer'
+                : 'bg-gradient-to-r from-secondary-container to-secondary-fixed text-on-secondary-container hover:shadow-md hover:scale-[1.02] active:scale-95'
+            }`}
           >
-            Upgrade to Premium
+            {isPremium && <span className="material-symbols-outlined text-[18px]">workspace_premium</span>}
+            {isPremium ? 'Premium' : 'Upgrade to Premium'}
           </button>
           <div className="flex gap-2 relative">
             {/* Notification button */}
@@ -146,12 +164,20 @@ export default function MerchantNavbar({ currentPath, navigate }) {
               </div>
             )}
           </div>
-          <img 
-            alt="Merchant Profile Avatar" 
-            className="w-10 h-10 rounded-full border-2 border-outline-variant/30 object-cover cursor-pointer hover:border-primary transition-all duration-300" 
+          <div 
             onClick={() => navigate('/merchant/profile')}
-            src={profileImage}
-          />
+            className="w-10 h-10 rounded-full border-2 border-outline-variant/30 flex items-center justify-center cursor-pointer hover:border-primary transition-all duration-300 overflow-hidden bg-primary/10 text-primary font-bold"
+          >
+            {profileImage ? (
+              <img 
+                alt="Business Logo" 
+                className="w-full h-full object-cover" 
+                src={profileImage}
+              />
+            ) : (
+              <span>{businessName ? businessName.charAt(0).toUpperCase() : 'M'}</span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -178,12 +204,16 @@ export default function MerchantNavbar({ currentPath, navigate }) {
           <button onClick={() => navigate('/merchant/kyc-status')} className="text-primary">
             <span className="material-symbols-outlined">verified_user</span>
           </button>
-          <div className="w-8 h-8 rounded-full overflow-hidden cursor-pointer" onClick={() => navigate('/merchant/profile')}>
-            <img 
-              className="w-full h-full object-cover" 
-              alt="Avatar" 
-              src={profileImage}
-            />
+          <div className="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center cursor-pointer overflow-hidden bg-primary/10 text-primary font-bold" onClick={() => navigate('/merchant/profile')}>
+            {profileImage ? (
+              <img 
+                className="w-full h-full object-cover" 
+                alt="Business Logo" 
+                src={profileImage}
+              />
+            ) : (
+              <span className="text-sm">{businessName ? businessName.charAt(0).toUpperCase() : 'M'}</span>
+            )}
           </div>
 
           {/* Mobile notification dropdown */}

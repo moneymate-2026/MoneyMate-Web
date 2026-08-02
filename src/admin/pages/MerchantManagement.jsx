@@ -965,7 +965,7 @@ export default function MerchantManagement() {
             <div className="text-center space-y-2">
               <h3 className="font-extrabold text-lg text-admin-on-surface">Delete Store Account?</h3>
               <p className="text-xs text-admin-on-surface-variant leading-relaxed">
-                You are about to permanently delete <span className="font-bold text-admin-on-surface">"{deletingMerchant.businessName}" ({deletingMerchant.id})</span>. All assigned QR terminals, cashback logs, and owner credentials will be removed. This action cannot be undone.
+                You are about to permanently delete <span className="font-bold text-admin-on-surface">&quot;{deletingMerchant.businessName}&quot; ({deletingMerchant.id})</span>. All assigned QR terminals, cashback logs, and owner credentials will be removed. This action cannot be undone.
               </p>
             </div>
 
@@ -1094,7 +1094,7 @@ export default function MerchantManagement() {
                     <span className="font-mono text-xs font-bold text-admin-primary">{selectedMerchant.tier}</span>
                   </div>
                   <p className="text-xs text-admin-on-surface-variant">
-                    Manage the merchant's current billing tier and feature entitlements.
+                    Manage the merchant&apos;s current billing tier and feature entitlements.
                   </p>
                   <div className="pt-1 flex items-center gap-2">
                     <span className="text-xs font-semibold text-admin-on-surface-variant">Upgrade:</span>

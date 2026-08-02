@@ -66,7 +66,7 @@ export default function Welcome({ navigate }) {
               <p className="font-body-sm text-body-sm text-on-surface-variant">Register and start accepting payments instantly.</p>
             </div>
             <div className="space-y-2">
-              <div className="w-10 h-10 rounded-lg bg-tertiary/10 text-tertiary flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center">
                 <span className="material-symbols-outlined">bolt</span>
               </div>
               <h4 className="font-label-md text-label-md text-on-background font-bold">Instant Settlements</h4>
@@ -98,7 +98,7 @@ export default function Welcome({ navigate }) {
                     <p className="font-label-sm text-label-sm text-on-surface-variant">Verified Merchant</p>
                   </div>
                 </div>
-                <span className="bg-tertiary/10 text-tertiary font-label-sm text-label-sm px-2.5 py-1 rounded-full border border-tertiary/20">Active</span>
+                <span className="bg-emerald-50 text-emerald-600 font-label-sm text-label-sm px-2.5 py-1 rounded-full border border-emerald-200">Active</span>
               </div>
 
               {/* Chart Mockup */}

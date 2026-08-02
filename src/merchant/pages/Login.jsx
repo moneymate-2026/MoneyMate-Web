@@ -123,7 +123,7 @@ export default function Login({ navigate, showToast }) {
               
               <div className="text-center pt-2">
                  <p className="text-[11px] font-semibold text-slate-400">
-                   Don't have an account?{' '}
+                   Don&apos;t have an account?{' '}
                    <button type="button" onClick={() => navigate('/merchant/register')} className="text-[#6366f1] hover:underline font-bold">Register</button>
                  </p>
               </div>
