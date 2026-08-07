@@ -41,16 +41,19 @@ export default function KYCStatus({ navigate, showToast }) {
     }
   };
 
-  const generateDummyPDF = (docName) => {
-    return `data:application/pdf;base64,JVBERi0xLjQKJdPr6eEKMSAwIG9iago8PC9DcmVhdG9yIChNb25leU1hdGUpL1Byb2R1Y2VyIChNb25leU1hdGUpL0NyZWF0aW9uRGF0ZSAoRDoyMDIzMTAyNzEyMDAwMFopPj4KZW5kb2JqCjIgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMyAwIFIKPj4KZW5kb2JqCjMgMCBvYmoKPDwvVHlwZSAvUGFnZXMgL0tpZHMgWzQgMCBSXSAvQ291bnQgMQo+PgplbmRvYmoKNCAwIG9iago8PC9VHlwZSAvUGFnZSAvTWVkaWFCb3ggWzAgMCA1OTUgODQyXSAvUGFyZW50IDMgMCBSIC9SZXNvdXJjZXMgPDwvRm9udCA8PC9GMSA1IDAgUj4+Pj4gL0NvbnRlbnRzIDYgMCBSCj4+CmVuZG9iago1IDAgb2JqCjw8L1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhCj4+CmVuZG9iago2IDAgb2JqCjw8L0xlbmd0aCA3Mwo+PgpzdHJlYW0KQlQKL0YxIDI0IFRmCjEwMCA3MDAgVGQKKERvY3VtZW50IFZpZXcgLSBNb25leU1hdGUpIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDcKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDE1IDAwMDAwIG4gCjAwMDAwMDAxMTAgMDAwMDAgbiAKMDAwMDAwMDE1OSAwMDAwMCBuIAowMDAwMDAwMjE2IDAwMDAwIG4gCjAwMDAwMDAzMjUgMDAwMDAgbiAKMDAwMDAwMDQxMyAwMDAwMCBuIAp0cmFpbGVyCjw8L1NpemUgNyAvUm9vdCAyIDAgUiAvSW5mbyAxIDAgUj4+CnN0YXJ0eHJlZgo1MzYKJSVFT0YK`;
-  };
 
   const handleViewDocument = (doc) => {
-    const isMockUrl = !doc.url || doc.url.includes('example.com') || doc.url.includes('moneymate.com');
-    const pdfUrl = !isMockUrl && doc.url && (doc.url.startsWith('http') || doc.url.startsWith('data:')) ? doc.url : generateDummyPDF(doc.name);
+    if (!doc.url) {
+      if (showToast) showToast('No document available to view', 'error');
+      return;
+    }
     const newWindow = window.open();
     if (newWindow) {
-      newWindow.document.write(`<iframe src="${pdfUrl}" width="100%" height="100%" style="border:none; margin:0; padding:0;"></iframe>`);
+      if (doc.url.startsWith('data:')) {
+        newWindow.document.write(`<iframe src="${doc.url}" width="100%" height="100%" style="border:none; margin:0; padding:0;"></iframe>`);
+      } else {
+        newWindow.location.href = doc.url;
+      }
       newWindow.document.close();
     } else {
       if (showToast) showToast('Please allow popups to view the document', 'warning');
@@ -58,15 +61,17 @@ export default function KYCStatus({ navigate, showToast }) {
   };
 
   const handleDownloadDocument = (doc) => {
-    const isMockUrl = !doc.url || doc.url.includes('example.com') || doc.url.includes('moneymate.com');
-    const pdfUrl = !isMockUrl && doc.url && (doc.url.startsWith('http') || doc.url.startsWith('data:')) ? doc.url : generateDummyPDF(doc.name);
+    if (!doc.url) {
+      if (showToast) showToast('No document available to download', 'error');
+      return;
+    }
     const link = document.createElement('a');
-    link.href = pdfUrl;
+    link.href = doc.url;
     
     // Determine extension from data URI if present
     let ext = 'pdf';
-    if (pdfUrl.startsWith('data:')) {
-      const mime = pdfUrl.substring(5, pdfUrl.indexOf(';'));
+    if (doc.url.startsWith('data:')) {
+      const mime = doc.url.substring(5, doc.url.indexOf(';'));
       if (mime.includes('image/')) ext = mime.split('/')[1];
       else if (mime.includes('pdf')) ext = 'pdf';
     }

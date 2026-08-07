@@ -17,6 +17,7 @@ export default function Profile({ navigate, showToast }) {
     email: '',
     mobile: '',
     profileImage: '',
+    createdAt: '',
   });
   const [loading, setLoading] = useState(true);
 
@@ -35,6 +36,7 @@ export default function Profile({ navigate, showToast }) {
             email: response.data.email || '',
             mobile: response.data.mobile || '',
             profileImage: response.data.profileImage || '',
+            createdAt: response.data.createdAt || '',
           });
         }
       } catch (error) {
@@ -94,24 +96,23 @@ export default function Profile({ navigate, showToast }) {
         <MerchantNavbar currentPath={currentPath} navigate={navigate} />
 
         {/* Page Content */}
-        <main className="p-6 md:p-8 space-y-8 max-w-4xl w-full mx-auto pb-24 md:pb-8 flex-grow">
+        <main className="p-6 md:p-8 space-y-8 w-full pb-24 md:pb-8 flex-grow">
           {/* Header */}
           <div className="animate-fade-in">
             <h2 className="font-headline-lg text-headline-lg font-bold text-on-surface text-3xl">Business Profile</h2>
-            <p className="font-body-md text-body-md text-on-surface-variant mt-1">Manage your merchant profile details and contact information.</p>
           </div>
 
-          <div className="space-y-8">
-            {/* Business details form */}
-            <div className="bg-surface-container backdrop-blur-md rounded-2xl p-6 md:p-8 border border-outline-variant/30 shadow-sm relative overflow-hidden animate-slide-in-left">
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-l-2xl"></div>
-              <h3 className="font-headline-md text-headline-md font-bold text-on-surface mb-6 flex items-center gap-2 text-xl">
-                <span className="material-symbols-outlined text-primary">storefront</span>
-                <span>Business Information</span>
-              </h3>
+          <form onSubmit={handleSave} className="space-y-8">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 animate-slide-in-left">
+              
+              {/* Business Information */}
+              <div className="bg-surface-container rounded-2xl p-6 md:p-8 border border-outline-variant/30 shadow-sm flex flex-col">
+                <h3 className="font-headline-md text-headline-md font-bold text-on-surface mb-6 flex items-center gap-2 text-xl">
+                  <span className="material-symbols-outlined text-on-surface-variant">storefront</span>
+                  <span>Business Information</span>
+                </h3>
 
-              <form onSubmit={handleSave} className="space-y-8">
-                <div className="flex flex-col-reverse md:flex-row gap-8">
+                <div className="flex flex-col-reverse lg:flex-row gap-8 mb-6">
                   {/* Left Column: Form Fields */}
                   <div className="flex-1 space-y-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -180,22 +181,33 @@ export default function Profile({ navigate, showToast }) {
                         />
                       </div>
                     </div>
+
+                    <div className="space-y-1.5">
+                      <label className="font-label-sm text-label-sm text-on-surface-variant ml-1 font-semibold">Registered At</label>
+                      <input 
+                        type="text" 
+                        value={formData.createdAt ? new Date(formData.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
+                        disabled
+                        className="w-full bg-surface-variant/30 border border-outline-variant/30 rounded-xl px-4 py-3 font-body-md text-on-surface-variant outline-none cursor-not-allowed placeholder:text-on-surface-variant/40"
+                        placeholder="N/A"
+                      />
+                    </div>
                   </div>
 
                   {/* Right Column: Profile Image Upload */}
-                  <div className="flex flex-col items-center md:items-end gap-3 md:w-1/3">
-                    <div className="relative w-32 h-32 rounded-2xl bg-surface-container-high border-2 border-dashed border-outline-variant/50 flex flex-col items-center justify-center overflow-hidden shrink-0 group hover:border-primary transition-colors">
+                  <div className="flex flex-col items-center lg:items-end gap-3 lg:w-32 shrink-0">
+                    <div className="relative w-24 h-24 lg:w-32 lg:h-32 rounded-2xl bg-surface-container-high border-2 border-dashed border-outline-variant/50 flex flex-col items-center justify-center overflow-hidden shrink-0 group hover:border-primary transition-colors">
                       {formData.profileImage ? (
                         <img src={formData.profileImage} alt="Profile" className="w-full h-full object-cover" />
                       ) : (
                         <div className="flex flex-col items-center justify-center text-on-surface-variant/50 group-hover:text-primary transition-colors">
-                          <span className="material-symbols-outlined text-4xl">storefront</span>
-                          <span className="text-xs mt-1 font-medium">Add Logo</span>
+                          <span className="material-symbols-outlined text-3xl lg:text-4xl">storefront</span>
+                          <span className="text-[10px] lg:text-xs mt-1 font-medium">Add Logo</span>
                         </div>
                       )}
                       <label className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity text-white backdrop-blur-sm">
-                        <span className="material-symbols-outlined text-2xl">photo_camera</span>
-                        <span className="text-xs font-semibold mt-1 tracking-wide">Upload Image</span>
+                        <span className="material-symbols-outlined text-xl lg:text-2xl">photo_camera</span>
+                        <span className="text-[10px] lg:text-xs font-semibold mt-1 tracking-wide text-center">Upload<br/>Image</span>
                         <input 
                           type="file" 
                           accept="image/*" 
@@ -216,32 +228,35 @@ export default function Profile({ navigate, showToast }) {
                         />
                       </label>
                     </div>
-                    <div className="text-center md:text-right">
+                    <div className="text-center lg:text-right">
                       <h4 className="font-label-md text-label-md text-on-surface font-bold">Business Logo</h4>
-                      <p className="font-body-sm text-[11px] text-on-surface-variant mt-1 max-w-[150px] leading-tight">Recommended size: 256x256px.</p>
+                      <p className="font-body-sm text-[11px] text-on-surface-variant mt-1 max-w-[150px] leading-tight">Recommended: 256x256px</p>
                     </div>
                   </div>
                 </div>
+              </div>
 
-                <div className="border-t border-outline-variant/30 pt-8 mt-4">
-                  <h3 className="font-headline-md text-headline-md font-bold text-on-surface mb-6 flex items-center gap-2 text-xl">
-                    <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>account_circle</span>
-                    <span>Primary Contact</span>
-                  </h3>
-                  
+              {/* Primary Contact */}
+              <div className="bg-surface-container rounded-2xl p-6 md:p-8 border border-outline-variant/30 shadow-sm flex flex-col h-full">
+                <h3 className="font-headline-md text-headline-md font-bold text-on-surface mb-6 flex items-center gap-2 text-xl">
+                  <span className="material-symbols-outlined text-on-surface-variant">account_circle</span>
+                  <span>Primary Contact</span>
+                </h3>
+                
+                <div className="flex-1 space-y-5">
+                  <div className="space-y-1.5">
+                    <label className="font-label-sm text-label-sm text-on-surface-variant ml-1 font-semibold">Owner / Primary Contact Name</label>
+                    <input 
+                      type="text" 
+                      name="ownerName"
+                      value={formData.ownerName || ''}
+                      onChange={handleChange}
+                      required
+                      className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-on-surface-variant/40 hover:bg-surface-container-low"
+                      placeholder="John Doe"
+                    />
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div className="space-y-1.5 md:col-span-2">
-                      <label className="font-label-sm text-label-sm text-on-surface-variant ml-1 font-semibold">Owner / Primary Contact Name</label>
-                      <input 
-                        type="text" 
-                        name="ownerName"
-                        value={formData.ownerName || ''}
-                        onChange={handleChange}
-                        required
-                        className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition-all placeholder:text-on-surface-variant/40 hover:bg-surface-container-low"
-                        placeholder="John Doe"
-                      />
-                    </div>
                     <div className="space-y-1.5">
                       <label className="font-label-sm text-label-sm text-on-surface-variant ml-1 font-semibold">Contact Email</label>
                       <input 
@@ -250,7 +265,7 @@ export default function Profile({ navigate, showToast }) {
                         value={formData.email || ''}
                         onChange={handleChange}
                         required
-                        className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition-all placeholder:text-on-surface-variant/40 hover:bg-surface-container-low"
+                        className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-on-surface-variant/40 hover:bg-surface-container-low"
                         placeholder="john.doe@example.com"
                       />
                     </div>
@@ -262,36 +277,35 @@ export default function Profile({ navigate, showToast }) {
                         value={formData.mobile || ''}
                         onChange={handleChange}
                         required
-                        className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition-all placeholder:text-on-surface-variant/40 hover:bg-surface-container-low"
+                        className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-on-surface-variant/40 hover:bg-surface-container-low"
                         placeholder="(555) 123-4567"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-6 mt-6 flex justify-end gap-3 border-t border-outline-variant/30">
+                {/* Actions inside the contact card or at the bottom of the grid */}
+                <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-outline-variant/20">
                   <button 
                     type="button"
-                    onClick={() => {
-                      navigate('/merchant/dashboard');
-                    }}
-                    className="px-6 py-3 rounded-xl font-label-md text-label-md text-primary hover:bg-primary/5 transition-colors"
+                    onClick={() => navigate('/merchant/dashboard')}
+                    className="px-6 py-2.5 rounded-full font-label-md text-label-md text-on-surface-variant border border-outline-variant/30 hover:bg-surface-variant transition-colors"
                   >
                     Cancel
                   </button>
                   <button 
                     type="submit"
-                    className="px-8 py-3 bg-primary text-on-primary rounded-xl font-label-md text-label-md font-bold hover:bg-primary/95 transition-all shadow-md hover:shadow-lg active:scale-95 flex items-center gap-2"
+                    className="px-6 py-2.5 bg-on-surface text-surface rounded-full font-label-md text-label-md font-bold hover:opacity-90 transition-all shadow-sm active:scale-95 flex items-center gap-2"
                   >
                     <span className="material-symbols-outlined text-sm">save</span>
                     Save Changes
                   </button>
                 </div>
-              </form>
-            </div>
-          </div>
-        </main>
+              </div>
 
+            </div>
+          </form>
+        </main>
         {/* Mobile bottom nav */}
         <MerchantBottomNav currentPath={currentPath} navigate={navigate} />
       </div>

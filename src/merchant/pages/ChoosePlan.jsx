@@ -28,10 +28,11 @@ export default function ChoosePlan({ navigate, showToast }) {
     const fetchPlan = async () => {
       try {
         const res = await gatewayClient.getCurrentSubscription();
-        if (res.success && res.data && res.data.planName) {
-          setCurrentPlan(res.data.planName);
-        } else if (res.success && res.data && res.data.PlanName) {
-          setCurrentPlan(res.data.PlanName);
+        if (res.success && res.data) {
+          const fetchedPlan = res.data.plan_name || res.data.planName || res.data.PlanName;
+          if (fetchedPlan) {
+            setCurrentPlan(fetchedPlan);
+          }
         }
       } catch (err) {
         console.error("Failed to load current plan", err);
@@ -200,13 +201,16 @@ export default function ChoosePlan({ navigate, showToast }) {
           </div>
 
           {!loading && currentPlan !== 'Essential' && (
-            <div className="mt-8 text-center animate-fade-in delay-200">
+            <div className="mt-12 text-center animate-fade-in delay-200">
               <button 
-                onClick={() => handleSelectPlan('Essential')}
-                className="text-error font-label-md hover:underline bg-error/10 px-6 py-3 rounded-xl transition-colors hover:bg-error/20 inline-flex items-center justify-center gap-2"
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to cancel your premium subscription?")) {
+                    handleSelectPlan('Essential');
+                  }
+                }}
+                className="text-on-surface-variant font-label-md hover:text-error hover:underline transition-colors px-4 py-2"
               >
-                <span className="material-symbols-outlined text-sm">cancel</span>
-                Cancel Premium Subscription (Downgrade to Essential)
+                Cancel Premium Subscription
               </button>
             </div>
           )}

@@ -1,16 +1,34 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { gatewayClient } from '../../api/gatewayClient';
 
 const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Simulate login for now
+    setError('');
+    
     if (email && password) {
-      navigate('/admin');
+      try {
+        const response = await gatewayClient.post('/auth/login', {
+          identifier: email,
+          password: password
+        });
+        
+        if (response.success && response.data) {
+          localStorage.setItem('merchant_token', response.data.access_token || response.data.AccessToken);
+          navigate('/admin');
+        } else {
+          setError(response.data?.error || 'Login failed');
+        }
+      } catch (err) {
+        console.error(err);
+        setError('Connection failed. Please try again.');
+      }
     }
   };
 
@@ -60,6 +78,11 @@ const AdminLogin = () => {
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
+            {error && (
+              <div className="bg-admin-error/10 border border-admin-error/50 text-admin-error px-4 py-2 rounded-xl text-sm animate-fade-in text-center">
+                {error}
+              </div>
+            )}
             <div className="space-y-1 animate-slide-in-right delay-400">
               <label className="text-sm font-semibold text-admin-on-surface ml-1">Email Address</label>
               <div className="relative">

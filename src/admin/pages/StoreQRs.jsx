@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import DataTable from "../components/DataTable";
 import StatusBadge from "../components/StatusBadge";
 import KpiCard from "../components/KpiCard";
-import { adminMerchantService } from "../../services/api/admin/merchants";
+import { adminMerchantService } from "../services/merchants";
 import { 
   QrCode, 
   Search, 
@@ -178,9 +178,7 @@ export default function StoreQRs() {
               {onlineCount} Terminals Online
             </span>
           </div>
-          <p className="text-sm text-admin-on-surface-variant mt-1">
-            Monitor physical and digital storefront QR terminals, audit scan velocity, and manage cryptographic tokens.
-          </p>
+
         </div>
 
         <div className="flex items-center gap-2 text-xs font-semibold">

@@ -160,7 +160,7 @@ export default function Overview() {
         <div className="p-6 border-b border-admin-outline-variant flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 className="text-lg font-semibold text-admin-on-surface">Recent Transactions</h3>
-            <p className="text-sm text-admin-on-surface-variant mt-1">Latest financial activities across the platform.</p>
+
           </div>
           <button className="text-sm font-semibold text-admin-primary hover:bg-admin-surface-container px-4 py-2 rounded-lg transition-colors">
             View All

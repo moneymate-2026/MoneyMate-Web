@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import DataTable from "../components/DataTable";
 import StatusBadge from "../components/StatusBadge";
 import KpiCard from "../components/KpiCard";
-import { adminMerchantService } from "../../services/api/admin/merchants";
+import { adminMerchantService } from "../services/merchants";
 import { 
   Search, 
   Plus, 
@@ -55,7 +55,8 @@ export default function MerchantManagement() {
     category: "Retail",
     tier: "Basic",
     status: "Active",
-    address: ""
+    address: "",
+    password: ""
   });
 
   const showToast = (message, type = "success") => {
@@ -91,7 +92,8 @@ export default function MerchantManagement() {
       category: "Retail",
       tier: "Basic",
       status: "Active",
-      address: ""
+      address: "",
+      password: ""
     });
     setIsCreateModalOpen(true);
   };
@@ -353,7 +355,7 @@ export default function MerchantManagement() {
       render: (row) => (
         <div>
           <span className="font-mono text-xs font-bold bg-admin-surface-container-high px-2 py-0.5 rounded text-admin-on-surface">
-            {row.id}
+            {row.displayId || row.id}
           </span>
           <p className="text-[11px] text-admin-on-surface-variant mt-1">{row.registeredDate}</p>
         </div>
@@ -501,9 +503,6 @@ export default function MerchantManagement() {
               {merchants.length} Total Stores
             </span>
           </div>
-          <p className="text-sm text-admin-on-surface-variant mt-1">
-            Oversee shop owners, verify business KYC documents, monitor QR scan volume, and manage plan tiers.
-          </p>
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
@@ -537,7 +536,7 @@ export default function MerchantManagement() {
       </div>
 
       {/* KPI Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         <KpiCard 
           title="Total Registered Stores" 
           value={stats.totalMerchants || merchants.length} 
@@ -558,13 +557,6 @@ export default function MerchantManagement() {
           trend={merchants.filter(m => m.kycStatus === 'Pending').length > 0 ? "down" : "up"} 
           trendValue="Action req." 
           icon={UserCheck} 
-        />
-        <KpiCard 
-          title="Total Processed Volume" 
-          value={stats.totalVolumeProcessed || "$175,916.75"} 
-          trend="up" 
-          trendValue="+18.4% vs last" 
-          icon={DollarSign} 
         />
       </div>
 
@@ -597,7 +589,7 @@ export default function MerchantManagement() {
                 onClick={() => setStatusFilter(status)}
                 className={`px-3 py-1.5 rounded-lg transition-all ${
                   statusFilter === status 
-                    ? "bg-admin-on-surface text-white shadow-sm" 
+                    ? "bg-admin-primary text-white shadow-sm" 
                     : "bg-admin-surface-container-low text-admin-on-surface-variant hover:bg-admin-surface-container"
                 }`}
               >
@@ -617,7 +609,7 @@ export default function MerchantManagement() {
                 className={`px-2.5 py-1 rounded-md transition-all ${
                   tierFilter === tier 
                     ? "bg-admin-primary text-white" 
-                    : "bg-admin-surface-container-highest text-slate-600 hover:bg-admin-surface-container-highest"
+                    : "bg-admin-surface-container-highest text-admin-on-surface-variant hover:bg-admin-surface-container-highest"
                 }`}
               >
                 {tier}
@@ -625,22 +617,6 @@ export default function MerchantManagement() {
             ))}
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-admin-on-surface-variant">Category:</span>
-            {["All", "Retail", "F&B", "Electronics", "Services"].map(cat => (
-              <button
-                key={cat}
-                onClick={() => setCategoryFilter(cat)}
-                className={`px-2.5 py-1 rounded-md transition-all ${
-                  categoryFilter === cat 
-                    ? "bg-indigo-600 text-white" 
-                    : "bg-admin-surface-container-highest text-slate-600 hover:bg-admin-surface-container-highest"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
 
@@ -677,7 +653,7 @@ export default function MerchantManagement() {
       {/* CREATE MERCHANT MODAL */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-admin-surface-container rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden border border-admin-outline-variant animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+          <div className="bg-admin-surface-container rounded-3xl w-full max-w-3xl shadow-2xl overflow-hidden border border-admin-outline-variant animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
             <div className="p-6 border-b border-admin-outline-variant flex justify-between items-center bg-admin-surface-container-high shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-admin-primary/10 text-admin-primary flex items-center justify-center font-bold">
@@ -785,15 +761,28 @@ export default function MerchantManagement() {
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-admin-on-surface-variant block mb-1">Physical Store Address</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. 742 Evergreen Terrace, Suite 100, NY"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-admin-on-surface-variant block mb-1">Initial Password *</label>
+                  <input 
+                    type="password" 
+                    required
+                    placeholder="••••••••"
+                    value={formData.password || ""}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-admin-on-surface-variant block mb-1">Physical Store Address</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. 742 Evergreen Terrace, Suite 100, NY"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
+                  />
+                </div>
               </div>
 
               <div className="pt-4 border-t flex justify-end gap-3 shrink-0">
@@ -819,7 +808,7 @@ export default function MerchantManagement() {
       {/* EDIT MERCHANT MODAL */}
       {editingMerchant && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-admin-surface-container rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden border border-admin-outline-variant animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+          <div className="bg-admin-surface-container rounded-3xl w-full max-w-3xl shadow-2xl overflow-hidden border border-admin-outline-variant animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
             <div className="p-6 border-b border-admin-outline-variant flex justify-between items-center bg-admin-surface-container-high shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">

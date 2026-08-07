@@ -20,7 +20,14 @@ export default function Dashboard({ navigate, showToast }) {
         if (response.success && response.data) {
           setStats(response.data.stats || []);
           setTransactions(response.data.transactions || []);
-          setCampaigns(response.data.campaigns || []);
+          
+          // Fetch real campaigns directly from the DB
+          const campRes = await gatewayClient.getCampaigns();
+          if (campRes.success && campRes.data) {
+            setCampaigns(campRes.data);
+          } else {
+            setCampaigns(response.data.campaigns || []);
+          }
         }
         
         const profileResponse = await gatewayClient.getProfile();
@@ -139,22 +146,28 @@ export default function Dashboard({ navigate, showToast }) {
                 </div>
                 <div>
                   <h3 className="font-headline-md text-headline-md font-bold text-on-background text-lg">Active Campaigns</h3>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-                    Customers earn double cashback on weekends.
-                  </p>
                 </div>
-                <div className="space-y-3 pt-4 border-t border-outline-variant/20">
+                <div className="space-y-3 pt-2">
                   {campaigns.length === 0 ? (
                     <div className="text-center py-4 text-on-surface-variant font-label-sm">No active campaigns</div>
                   ) : (
-                    campaigns.map((camp, idx) => (
-                      <div key={camp.id || idx} className="flex justify-between items-center py-2 bg-surface-container-low px-4 rounded-xl border border-outline-variant/20">
-                        <span className="font-body-sm text-body-sm text-on-background font-medium">{camp.name}</span>
-                        <span className={`font-bold text-xs px-2.5 py-0.5 rounded-full border ${camp.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-surface-container-highest text-on-surface-variant border-outline-variant/30'}`}>
-                          {camp.status || 'Active'}
-                        </span>
-                      </div>
-                    ))
+                    campaigns.map((camp, idx) => {
+                      // Support both dashboard API payload and campaigns API payload
+                      const isActive = camp.is_active !== undefined ? camp.is_active : (camp.status === 'Active' || camp.status === 'active');
+                      const statusText = isActive ? 'Active' : 'Inactive';
+                      
+                      return (
+                        <div key={camp.id || idx} className="flex justify-between items-center py-2.5 bg-tertiary/10 px-4 rounded-xl border border-tertiary/20">
+                          <div className="flex items-center gap-3">
+                            <span className="material-symbols-outlined text-tertiary text-lg">local_offer</span>
+                            <span className="font-body-sm text-on-background font-bold">{camp.name}</span>
+                          </div>
+                          <span className={`font-bold text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full ${isActive ? 'bg-tertiary text-white' : 'bg-surface-container-highest text-on-surface-variant'}`}>
+                            {statusText}
+                          </span>
+                        </div>
+                      );
+                    })
                   )}
                 </div>
               </div>

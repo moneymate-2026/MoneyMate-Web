@@ -1,7 +1,8 @@
 // MoneyMate Gateway Client
 // Handles backend connectivity to the Go merchant service on Render
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://merchant-service-ylvn.onrender.com';
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://money-mate.duckdns.org/api/v1';
+const ADMIN_BASE_URL = import.meta.env.VITE_ADMIN_API_URL || 'https://money-mate.duckdns.org/api/v1';
 
 // Helper to simulate an Auth Service UUID generation
 const getOwnerId = (email) => {
@@ -26,7 +27,9 @@ const handleRequest = async (url, options = {}) => {
     ...options.headers,
   };
 
-  const fullUrl = `${BASE_URL}${url}`;
+  const isRouteAdmin = url.startsWith('/admin') || url.startsWith('/auth');
+  const activeBaseUrl = isRouteAdmin ? ADMIN_BASE_URL : BASE_URL;
+  const fullUrl = `${activeBaseUrl}${url}`;
   
   try {
     const response = await fetch(fullUrl, {
@@ -43,13 +46,35 @@ const handleRequest = async (url, options = {}) => {
     try {
       const errorBody = await response.json();
       errorMessage = errorBody.error || errorBody.message || errorMessage;
+      
+      // Sanitize raw Go backend errors for the frontend UI
+      if (typeof errorMessage === 'string') {
+        if (errorMessage.includes('sql: no rows')) {
+          errorMessage = 'Requested data not found or invalid credentials.';
+        } else if (errorMessage.includes('duplicate key') || errorMessage.includes('unique constraint')) {
+          errorMessage = 'This record (e.g., email or phone) already exists.';
+        } else if (errorMessage.includes('connection refused')) {
+          errorMessage = 'Unable to connect to the server. Please try again later.';
+        } else if (errorMessage.includes('invalid UUID') || errorMessage.includes('uuid: incorrect format')) {
+          errorMessage = 'Invalid data ID format.';
+        } else if (errorMessage.includes('token') && (errorMessage.includes('invalid') || errorMessage.includes('expired'))) {
+          errorMessage = 'Your session has expired or is invalid. Please log in again.';
+        } else if (errorMessage.includes('bcrypt:')) {
+          errorMessage = 'Invalid password verification.';
+        } else if (errorMessage.toLowerCase().includes('invalid credentials') || errorMessage.toLowerCase().includes('unauthorized')) {
+          errorMessage = 'Invalid email or password. Please try again.';
+        } else {
+          // Catch-all: Never expose raw unhandled Go errors (like "pq: ...") directly to the UI
+          errorMessage = 'An unexpected server error occurred. Please try again or contact support.';
+        }
+      }
     } catch (e) {
       // ignore JSON parse error
     }
     
     throw new Error(errorMessage);
   } catch (error) {
-    console.error(`[GatewayClient] API connection failed for ${url}. Error: ${error.message}`);
+    // Suppress console errors per user request to keep console clean
     throw error;
   }
 };
@@ -59,6 +84,7 @@ export const gatewayClient = {
   get: (url, options = {}) => handleRequest(url, { ...options, method: 'GET' }),
   post: (url, data, options = {}) => handleRequest(url, { ...options, method: 'POST', body: JSON.stringify(data) }),
   put: (url, data, options = {}) => handleRequest(url, { ...options, method: 'PUT', body: JSON.stringify(data) }),
+  patch: (url, data, options = {}) => handleRequest(url, { ...options, method: 'PATCH', body: JSON.stringify(data) }),
   delete: (url, options = {}) => handleRequest(url, { ...options, method: 'DELETE' }),
 
   // Auth operations
@@ -69,14 +95,15 @@ export const gatewayClient = {
     });
     const storeData = response.data;
     
-    // Store token and store_id
-    localStorage.setItem('merchant_token', 'jwt_token_for_' + email);
-    localStorage.setItem('merchant_store_id', storeData.store_id || storeData.StoreID);
-    localStorage.setItem('merchant_email', email);
+    if (response.success && response.data) {
+      localStorage.setItem('merchant_token', response.data.token);
+      localStorage.setItem('merchant_store_id', response.data.store_id);
+      localStorage.setItem('merchant_data', JSON.stringify(response.data));
+    }
     
     return {
       success: true,
-      token: 'jwt_token_for_' + email,
+      token: storeData.token,
       user: { email, storeId: storeData.store_id || storeData.StoreID }
     };
   },
@@ -106,9 +133,11 @@ export const gatewayClient = {
       body: JSON.stringify(payload),
     });
     
-    localStorage.setItem('merchant_token', 'jwt_token_for_' + formData.email);
-    localStorage.setItem('merchant_store_id', response.data.store_id);
-    localStorage.setItem('merchant_email', formData.email);
+    if (response.success && response.data) {
+      localStorage.setItem('merchant_token', response.data.token);
+      localStorage.setItem('merchant_store_id', response.data.store_id);
+      localStorage.setItem('merchant_data', JSON.stringify(response.data));
+    }
     
     // Store unique IDs and QR code generated by the backend
     if (response.data.display_id) localStorage.setItem('merchant_display_id', response.data.display_id);
@@ -127,6 +156,10 @@ export const gatewayClient = {
     localStorage.removeItem('merchant_token');
     localStorage.removeItem('merchant_store_id');
     localStorage.removeItem('merchant_email');
+    localStorage.removeItem('merchant_data');
+    localStorage.removeItem('merchant_display_id');
+    localStorage.removeItem('merchant_vpa');
+    localStorage.removeItem('merchant_qr');
   },
 
   isAuthenticated: () => {
@@ -235,6 +268,29 @@ export const gatewayClient = {
     const storeId = localStorage.getItem('merchant_store_id');
     const url = storeId ? `/merchant/${storeId}/rewards/history` : `/merchant/rewards/history`;
     return handleRequest(url, { method: 'GET' });
+  },
+
+  // Wallet routes
+  getWalletData: async (filter = 'all') => {
+    const storeId = localStorage.getItem('merchant_store_id');
+    const url = storeId ? `/merchant/${storeId}/wallet?filter=${filter}` : `/merchant/wallet?filter=${filter}`;
+    return handleRequest(url, { method: 'GET' });
+  },
+
+  // Earnings routes
+  getEarningsData: async () => {
+    const storeId = localStorage.getItem('merchant_store_id');
+    const url = storeId ? `/merchant/${storeId}/earnings` : `/merchant/earnings`;
+    return handleRequest(url, { method: 'GET' });
+  },
+
+  requestEarningsPayout: async (milestoneScans, rewardAmount) => {
+    const storeId = localStorage.getItem('merchant_store_id');
+    const url = storeId ? `/merchant/${storeId}/earnings/payouts` : `/merchant/earnings/payouts`;
+    return handleRequest(url, { 
+      method: 'POST',
+      body: JSON.stringify({ milestone_scans: milestoneScans, reward_amount: rewardAmount })
+    });
   },
 
   // Subscription Plans & Billing routes

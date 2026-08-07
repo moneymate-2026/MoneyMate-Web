@@ -1,28 +1,101 @@
 import { useState, useEffect } from "react";
 import DataTable from "../components/DataTable";
 import StatusBadge from "../components/StatusBadge";
-import { adminUserService } from "../../services/api/admin/users";
-import { Search, Plus, Filter, MoreVertical, ShieldAlert, CheckCircle2, Ban } from "lucide-react";
+import { adminUserService } from "../services/users";
+import { Search, Plus, Filter, MoreVertical, ShieldAlert, CheckCircle2, Ban, Trash2, Edit, X } from "lucide-react";
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [actionLoading, setActionLoading] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState('create'); // 'create' or 'edit'
+  const [modalData, setModalData] = useState({ id: '', email: '', phone: '', full_name: '', password: '', role: 'user' });
+  const [modalLoading, setModalLoading] = useState(false);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const response = await adminUserService.getUsers();
+      setUsers(response.data);
+    } catch (error) {
+      console.error("Failed to fetch users", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      setLoading(true);
-      try {
-        const response = await adminUserService.getUsers();
-        setUsers(response.data);
-      } catch (error) {
-        console.error("Failed to fetch users", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchUsers();
   }, []);
+
+  const handleStatusChange = async (id, newStatus) => {
+    if (!window.confirm(`Are you sure you want to ${newStatus.toLowerCase()} this user?`)) return;
+    
+    setActionLoading(id);
+    try {
+      await adminUserService.updateUserStatus(id, newStatus.toLowerCase());
+      // Refresh local state without full reload
+      setUsers(users.map(u => u.id === id ? { ...u, status: newStatus } : u));
+    } catch (error) {
+      console.error(`Failed to update status for user ${id}`, error);
+      alert('Failed to update user status.');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
+    
+    setActionLoading(id);
+    try {
+      await adminUserService.deleteUser(id);
+      setUsers(users.filter(u => u.id !== id));
+    } catch (error) {
+      console.error(`Failed to delete user ${id}`, error);
+      alert('Failed to delete user.');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const openModal = (mode, user = null) => {
+    setModalMode(mode);
+    if (mode === 'edit' && user) {
+      setModalData({
+        id: user.id,
+        email: user.email || '',
+        phone: user.phone || '',
+        full_name: user.name || '',
+        password: '', // Empty password for edit
+        role: user.role?.toLowerCase() || 'user'
+      });
+    } else {
+      setModalData({ id: '', email: '', phone: '', full_name: '', password: '', role: 'user' });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleModalSubmit = async (e) => {
+    e.preventDefault();
+    setModalLoading(true);
+    try {
+      if (modalMode === 'create') {
+        await adminUserService.createUser(modalData);
+      } else {
+        await adminUserService.updateUser(modalData.id, modalData);
+      }
+      setIsModalOpen(false);
+      fetchUsers(); // Refresh the list
+    } catch (error) {
+      console.error(`Failed to ${modalMode} user`, error);
+      alert(`Failed to ${modalMode} user. Please try again.`);
+    } finally {
+      setModalLoading(false);
+    }
+  };
 
   const filteredUsers = users.filter(user => 
     user.name.toLowerCase().includes(search.toLowerCase()) || 
@@ -65,18 +138,44 @@ export default function UserManagement() {
       header: "Actions",
       render: (row) => (
         <div className="flex items-center gap-3">
-          <button className="text-admin-on-surface-variant hover:text-admin-primary transition-colors" title="View Details">
-            <Search className="w-4 h-4" />
-          </button>
-          <button className="text-admin-on-surface-variant hover:text-green-600 transition-colors" title="Activate">
-            <CheckCircle2 className="w-4 h-4" />
-          </button>
-          <button className="text-admin-on-surface-variant hover:text-admin-error transition-colors" title="Suspend">
-            <Ban className="w-4 h-4" />
-          </button>
-          <button className="text-admin-on-surface-variant hover:text-admin-on-surface transition-colors" title="More">
-            <MoreVertical className="w-4 h-4" />
-          </button>
+          {actionLoading === row.id ? (
+            <div className="w-4 h-4 border-2 border-admin-outline-variant border-t-admin-primary rounded-full animate-spin ml-4"></div>
+          ) : (
+            <div className="flex items-center gap-1">
+              {row.status !== "Active" && (
+                <button 
+                  onClick={() => handleStatusChange(row.id, 'Active')}
+                  className="px-2.5 py-1.5 text-[13px] font-medium rounded-lg text-admin-on-surface-variant hover:text-green-500 hover:bg-green-500/10 transition-colors flex items-center gap-1.5"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Activate
+                </button>
+              )}
+              {row.status !== "Suspended" && (
+                <button 
+                  onClick={() => handleStatusChange(row.id, 'Suspended')}
+                  className="px-2.5 py-1.5 text-[13px] font-medium rounded-lg text-admin-on-surface-variant hover:text-amber-500 hover:bg-amber-500/10 transition-colors flex items-center gap-1.5"
+                >
+                  <Ban className="w-3.5 h-3.5" />
+                  Suspend
+                </button>
+              )}
+              <button 
+                onClick={() => openModal('edit', row)}
+                className="px-2.5 py-1.5 text-[13px] font-medium rounded-lg text-admin-on-surface-variant hover:text-admin-on-surface hover:bg-admin-surface-container-high transition-colors flex items-center gap-1.5"
+              >
+                <Edit className="w-3.5 h-3.5" />
+                Edit
+              </button>
+              <button 
+                onClick={() => handleDelete(row.id)}
+                className="px-2.5 py-1.5 text-[13px] font-medium rounded-lg text-admin-on-surface-variant hover:text-admin-error hover:bg-admin-error/10 transition-colors flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Delete
+              </button>
+            </div>
+          )}
         </div>
       )
     }
@@ -87,14 +186,17 @@ export default function UserManagement() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-[24px] font-bold text-admin-on-surface tracking-tight">User Management</h2>
-          <p className="text-sm text-admin-on-surface-variant mt-1">View, manage, and configure users across the platform.</p>
+
         </div>
         
         <div className="flex items-center gap-3">
           <button className="px-4 py-2 bg-admin-surface-container border border-admin-outline-variant text-admin-on-surface rounded-lg font-semibold shadow-sm hover:bg-admin-surface-container-low transition-colors flex items-center gap-2">
             <Filter className="w-4 h-4" /> Filters
           </button>
-          <button className="px-4 py-2 bg-admin-primary text-admin-on-primary rounded-lg font-semibold shadow-md shadow-admin-primary/20 hover:bg-admin-primary-container transition-all flex items-center gap-2">
+          <button 
+            onClick={() => openModal('create')}
+            className="px-4 py-2 bg-admin-primary text-admin-on-primary rounded-lg font-semibold shadow-md shadow-admin-primary/20 hover:bg-admin-primary-container transition-all flex items-center gap-2"
+          >
             <Plus className="w-4 h-4" /> Add User
           </button>
         </div>
@@ -139,6 +241,112 @@ export default function UserManagement() {
           </div>
         </div>
       </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-admin-surface-container rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-6 border-b border-admin-outline-variant">
+              <h3 className="text-xl font-bold text-admin-on-surface tracking-tight">
+                {modalMode === 'create' ? 'Add New User' : 'Edit User'}
+              </h3>
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="text-admin-on-surface-variant hover:text-admin-on-surface transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleModalSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-admin-on-surface mb-1">Full Name</label>
+                <input 
+                  type="text" 
+                  required
+                  value={modalData.full_name}
+                  onChange={(e) => setModalData({...modalData, full_name: e.target.value})}
+                  className="w-full px-3 py-2 bg-admin-surface-container-lowest border border-admin-outline-variant rounded-lg text-admin-on-surface focus:ring-2 focus:ring-admin-primary/40 focus:border-admin-primary outline-none transition-all"
+                  placeholder="John Doe"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-admin-on-surface mb-1">Email</label>
+                <input 
+                  type="email" 
+                  required
+                  value={modalData.email}
+                  onChange={(e) => setModalData({...modalData, email: e.target.value})}
+                  className="w-full px-3 py-2 bg-admin-surface-container-lowest border border-admin-outline-variant rounded-lg text-admin-on-surface focus:ring-2 focus:ring-admin-primary/40 focus:border-admin-primary outline-none transition-all"
+                  placeholder="john@example.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-admin-on-surface mb-1">Phone Number (Optional)</label>
+                <input 
+                  type="tel" 
+                  value={modalData.phone}
+                  onChange={(e) => setModalData({...modalData, phone: e.target.value})}
+                  className="w-full px-3 py-2 bg-admin-surface-container-lowest border border-admin-outline-variant rounded-lg text-admin-on-surface focus:ring-2 focus:ring-admin-primary/40 focus:border-admin-primary outline-none transition-all"
+                  placeholder="+1234567890"
+                />
+              </div>
+
+              {modalMode === 'create' && (
+                <div>
+                  <label className="block text-sm font-semibold text-admin-on-surface mb-1">Role</label>
+                  <select 
+                    value={modalData.role}
+                    onChange={(e) => setModalData({...modalData, role: e.target.value})}
+                    className="w-full px-3 py-2 bg-admin-surface-container-lowest border border-admin-outline-variant rounded-lg text-admin-on-surface focus:ring-2 focus:ring-admin-primary/40 focus:border-admin-primary outline-none transition-all"
+                  >
+                    <option value="user">User</option>
+                    <option value="merchant">Merchant</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-semibold text-admin-on-surface mb-1">
+                  {modalMode === 'create' ? 'Password' : 'New Password (Leave blank to keep current)'}
+                </label>
+                <input 
+                  type="password" 
+                  required={modalMode === 'create'}
+                  value={modalData.password}
+                  onChange={(e) => setModalData({...modalData, password: e.target.value})}
+                  className="w-full px-3 py-2 bg-admin-surface-container-lowest border border-admin-outline-variant rounded-lg text-admin-on-surface focus:ring-2 focus:ring-admin-primary/40 focus:border-admin-primary outline-none transition-all"
+                  placeholder={modalMode === 'create' ? "••••••••" : "Leave blank to keep unchanged"}
+                  minLength={8}
+                />
+              </div>
+              
+              <div className="pt-4 flex justify-end gap-3">
+                <button 
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 bg-transparent text-admin-on-surface-variant hover:text-admin-on-surface transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  disabled={modalLoading}
+                  className="px-6 py-2 bg-admin-primary text-admin-on-primary rounded-lg font-semibold shadow-md shadow-admin-primary/20 hover:bg-admin-primary-container transition-all flex items-center justify-center min-w-[120px] disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {modalLoading ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  ) : (
+                    modalMode === 'create' ? 'Create User' : 'Save Changes'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

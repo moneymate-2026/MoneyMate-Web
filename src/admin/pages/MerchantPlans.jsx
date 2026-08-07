@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import KpiCard from "../components/KpiCard";
-import { adminMerchantService } from "../../services/api/admin/merchants";
+import { adminMerchantService } from "../services/merchants";
 import { 
   Crown, 
   DollarSign, 
@@ -71,9 +71,7 @@ export default function MerchantPlans() {
               3 Active Tiers
             </span>
           </div>
-          <p className="text-sm text-admin-on-surface-variant mt-1">
-            Configure SaaS billing tiers, manage Monthly Recurring Revenue (MRR), and define feature limits for shop owners.
-          </p>
+
         </div>
 
         <button 

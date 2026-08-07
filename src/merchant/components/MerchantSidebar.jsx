@@ -2,7 +2,8 @@ import React from 'react';
 import { NavLink } from "react-router-dom";
 import { 
   LayoutDashboard, 
-  Wallet, 
+  Wallet,
+  Banknote, 
   Tag, 
   QrCode, 
   Crown, 
@@ -22,6 +23,8 @@ export default function MerchantSidebar({ currentPath, navigate }) {
     { name: 'Dashboard', icon: LayoutDashboard, path: '/merchant/dashboard' },
     { name: 'Offers', icon: Tag, path: '/merchant/create-offer' },
     { name: 'QR Manager', icon: QrCode, path: '/merchant/payment-qr' },
+    { name: 'Earnings', icon: Wallet, path: '/merchant/earnings-reports' },
+    { name: 'Wallet', icon: Banknote, path: '/merchant/wallet' },
     { name: 'Subscriptions', icon: Crown, path: '/merchant/choose-plan' },
     { name: 'KYC Status', icon: UserCheck, path: '/merchant/kyc-status' },
   ];

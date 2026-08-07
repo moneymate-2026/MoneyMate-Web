@@ -11,6 +11,7 @@ import PaymentQR from './pages/PaymentQR';
 import EarningsReports from './pages/EarningsReports';
 import Profile from './pages/Profile';
 import KYCStatus from './pages/KYCStatus';
+import Wallet from './pages/Wallet';
 
 export default function MerchantRouter() {
   const [path, setPath] = useState(window.location.pathname);
@@ -62,6 +63,8 @@ export default function MerchantRouter() {
         return <PaymentQR navigate={navigate} showToast={showToast} />;
       case '/merchant/earnings-reports':
         return <EarningsReports navigate={navigate} showToast={showToast} />;
+      case '/merchant/wallet':
+        return <Wallet navigate={navigate} showToast={showToast} />;
       case '/merchant/profile':
         return <Profile navigate={navigate} showToast={showToast} />;
       case '/merchant/kyc-status':

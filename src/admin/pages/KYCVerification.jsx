@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import StatusBadge from "../components/StatusBadge";
 import KpiCard from "../components/KpiCard";
-import { adminMerchantService } from "../../services/api/admin/merchants";
+import { adminMerchantService } from "../services/merchants";
 import { 
   UserCheck, 
   ShieldAlert, 
@@ -110,9 +110,7 @@ export default function KYCVerification() {
               </span>
             )}
           </div>
-          <p className="text-sm text-admin-on-surface-variant mt-1">
-            Review business licenses, tax identifications, and bank account setups for new store registrations.
-          </p>
+
         </div>
 
         <div className="flex items-center gap-2 text-xs font-semibold">
