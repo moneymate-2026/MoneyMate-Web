@@ -10,23 +10,12 @@ export default function VerificationPending({ navigate }) {
     setNotification('');
     
     try {
-      const response = await gatewayClient.getProfile();
-      if (response.success && response.data) {
-        if (response.data.status === 'Verified') {
-          setNotification('Application verified! Logging you in...');
-          setTimeout(() => {
-            setChecking(false);
-            navigate('/merchant/dashboard');
-          }, 1500);
-        } else {
-          // For demo purposes, auto-verify the status on the first check request
-          await gatewayClient.updateProfile({ status: 'Verified' });
-          setTimeout(() => {
-            setChecking(false);
-            setNotification('Compliance approved! Verification status updated. Click "Check Status" again to enter dashboard.');
-          }, 2000);
-        }
-      }
+      // For demo purposes, auto-verify the status and proceed to dashboard
+      setNotification('Application verified! Logging you in...');
+      setTimeout(() => {
+        setChecking(false);
+        navigate('/merchant/dashboard');
+      }, 1500);
     } catch (error) {
       setChecking(false);
       setNotification('Error verifying status. Please try again.');

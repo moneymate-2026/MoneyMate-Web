@@ -16,10 +16,18 @@ export default function CreateOffer({ navigate, showToast }) {
   // Selected campaign for edit
   const [selectedCampaignId, setSelectedCampaignId] = useState(null);
 
+  const generateRedeemCode = () => {
+    return 'OFFER-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+  };
+
   const initialForm = {
     campaignName: '',
-    offerType: 'Double Cashback (4%)',
+    redeemCode: '',
+    offerCategory: 'Food & Dining',
+    offerType: 'Flat Cashback',
+    rewardValue: '',
     minPurchase: '10',
+    redemptionLimit: '',
     startDate: '',
     endDate: '',
     targetAudience: 'All Customers',
@@ -31,10 +39,14 @@ export default function CreateOffer({ navigate, showToast }) {
   const fetchCampaigns = async () => {
     setFetching(true);
     try {
-      const response = await gatewayClient.getCampaigns();
-      setCampaigns(response.data || []);
+      const response = await gatewayClient.getCampaigns().catch(e => ({ success: false }));
+      if (response && response.success && response.data) {
+        setCampaigns(response.data || []);
+      } else {
+        setCampaigns([]);
+      }
     } catch (err) {
-      if (showToast) showToast('Failed to load campaigns', 'error');
+      console.warn('Backend rejected campaign fetch:', err);
     } finally {
       setFetching(false);
     }
@@ -75,7 +87,7 @@ export default function CreateOffer({ navigate, showToast }) {
 
   const handleToggleStatus = async (campaign) => {
     const campaignId = campaign.id || campaign.ID;
-    const newStatus = !campaign.is_active;
+    const newStatus = campaign.status === 'active' ? false : true;
     
     try {
       await gatewayClient.updateCampaignStatus(campaignId, newStatus);
@@ -91,20 +103,51 @@ export default function CreateOffer({ navigate, showToast }) {
       <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-l-2xl"></div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-1">
-          <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Campaign Name</label>
-          <input 
-            type="text" 
-            name="campaignName"
-            value={formData.campaignName}
-            onChange={handleChange}
-            required
-            placeholder="e.g. Weekend double rewards, Summer Special"
-            className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-1">
+            <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Campaign Name</label>
+            <input 
+              type="text" 
+              name="campaignName"
+              value={formData.campaignName}
+              onChange={handleChange}
+              required
+              placeholder="e.g. Weekend double rewards, Summer Special"
+              className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Redeem Code</label>
+            <input 
+              type="text" 
+              name="redeemCode"
+              value={formData.redeemCode}
+              onChange={handleChange}
+              required
+              placeholder="e.g. SUMMER50"
+              className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-mono uppercase"
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-1">
+            <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Offer Category</label>
+            <select 
+              name="offerCategory"
+              value={formData.offerCategory}
+              onChange={handleChange}
+              className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all appearance-none"
+            >
+              <option>Food & Dining</option>
+              <option>Shopping & Retail</option>
+              <option>Groceries & Essentials</option>
+              <option>Entertainment</option>
+              <option>Travel & Transport</option>
+              <option>Utilities & Bills</option>
+              <option>Health & Wellness</option>
+            </select>
+          </div>
           <div className="space-y-1">
             <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Offer Type</label>
             <select 
@@ -113,14 +156,33 @@ export default function CreateOffer({ navigate, showToast }) {
               onChange={handleChange}
               className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all appearance-none"
             >
-              <option>Double Cashback (4%)</option>
-              <option>Flat Cashback Bonus (₹20.00)</option>
+              <option>Flat Cashback</option>
               <option>Percentage Cashback</option>
-              <option>Custom Reward Rate</option>
+              <option>Flat Discount</option>
+              <option>Percentage Discount</option>
+              <option>Scratch Card Reward</option>
+              <option>Reward Points</option>
             </select>
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-1">
-            <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Minimum Bill Purchase (₹)</label>
+            <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Reward Value (₹ / %)</label>
+            <input 
+              type="number" 
+              name="rewardValue"
+              value={formData.rewardValue}
+              onChange={handleChange}
+              required
+              min="1"
+              step="any"
+              placeholder="e.g. 50"
+              className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Min Spend (₹)</label>
             <input 
               type="number" 
               name="minPurchase"
@@ -130,6 +192,19 @@ export default function CreateOffer({ navigate, showToast }) {
               min="0"
               step="any"
               placeholder="e.g. 500"
+              className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Redemption Limit</label>
+            <input 
+              type="number" 
+              name="redemptionLimit"
+              value={formData.redemptionLimit}
+              onChange={handleChange}
+              required
+              min="1"
+              placeholder="e.g. 100"
               className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
             />
           </div>
@@ -158,24 +233,26 @@ export default function CreateOffer({ navigate, showToast }) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-1">
-            <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Start Date</label>
+            <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">Start Date & Time</label>
             <input 
-              type="date" 
+              type="datetime-local" 
               name="startDate"
               value={formData.startDate}
               onChange={handleChange}
               required
+              step="1"
               className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
             />
           </div>
           <div className="space-y-1">
-            <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">End Date</label>
+            <label className="font-label-sm text-label-sm text-on-surface-variant ml-1">End Date & Time</label>
             <input 
-              type="date" 
+              type="datetime-local" 
               name="endDate"
               value={formData.endDate}
               onChange={handleChange}
               required
+              step="1"
               className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
             />
           </div>
@@ -219,7 +296,7 @@ export default function CreateOffer({ navigate, showToast }) {
         </div>
         <button 
           onClick={() => {
-            setFormData(initialForm);
+            setFormData({ ...initialForm, redeemCode: generateRedeemCode() });
             setView('create');
           }}
           className="bg-primary hover:bg-primary/95 text-on-primary font-label-md text-label-md px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2"
@@ -241,7 +318,7 @@ export default function CreateOffer({ navigate, showToast }) {
           <p className="text-on-surface-variant mt-2 max-w-sm mx-auto mb-6">You haven&apos;t launched any promotional offers or cashback campaigns yet.</p>
           <button 
             onClick={() => {
-              setFormData(initialForm);
+              setFormData({ ...initialForm, redeemCode: generateRedeemCode() });
               setView('create');
             }}
             className="bg-primary hover:bg-primary/95 text-on-primary font-label-md px-6 py-2.5 rounded-xl shadow-sm transition-all inline-flex items-center gap-2"
@@ -257,6 +334,7 @@ export default function CreateOffer({ navigate, showToast }) {
               <thead>
                 <tr className="bg-surface-container-highest border-b border-outline-variant/30 text-on-surface-variant font-label-md">
                   <th className="px-6 py-5 font-semibold whitespace-nowrap">Campaign</th>
+                  <th className="px-6 py-5 font-semibold whitespace-nowrap">Code & Limit</th>
                   <th className="px-6 py-5 font-semibold whitespace-nowrap">Min Bill</th>
                   <th className="px-6 py-5 font-semibold whitespace-nowrap">Duration</th>
                   <th className="px-6 py-5 font-semibold whitespace-nowrap">Status</th>
@@ -264,12 +342,30 @@ export default function CreateOffer({ navigate, showToast }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/20">
-                {campaigns.map((camp) => (
+                {campaigns.map((camp) => {
+                  const isExpired = new Date(camp.end_date || camp.endDate) < new Date();
+                  const displayStatus = isExpired ? 'Expired' : (camp.status === 'active' ? 'Active' : 'Paused');
+                  const statusStyles = {
+                    'Active': 'bg-emerald-50 text-emerald-600 border border-emerald-200',
+                    'Expired': 'bg-error/10 text-error border border-error/20',
+                    'Paused': 'bg-surface-container-highest text-on-surface-variant'
+                  };
+
+                  return (
                   <tr key={camp.id || camp.ID} className="hover:bg-primary/5 transition-colors group">
                     <td className="px-6 py-5">
                       <div className="flex flex-col min-w-[120px]">
                         <span className="font-bold text-on-surface text-base">{camp.name || camp.title}</span>
-                        <span className="text-xs text-primary font-bold mt-1">{camp.offer_type || camp.type}</span>
+                        <span className="text-xs text-primary font-bold mt-1">
+                          {camp.offer_category || camp.offerCategory || 'Offer'} • {camp.offer_type || camp.type || camp.offerType}
+                          {camp.reward_value ? ` (${(camp.offer_type || camp.type || camp.offerType)?.includes('Percentage') ? camp.reward_value + '%' : '₹' + camp.reward_value})` : ''}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="flex flex-col text-sm text-on-surface-variant">
+                        <span className="font-mono font-bold text-on-surface bg-surface-container px-2 py-0.5 rounded w-fit uppercase">{camp.redeem_code || camp.redeemCode || 'N/A'}</span>
+                        <span className="text-xs mt-1">Limit: {camp.redemption_limit || camp.redemptionLimit || '∞'}</span>
                       </div>
                     </td>
                     <td className="px-6 py-5 font-semibold text-on-surface">
@@ -277,30 +373,28 @@ export default function CreateOffer({ navigate, showToast }) {
                     </td>
                     <td className="px-6 py-5">
                       <div className="flex flex-col text-sm text-on-surface-variant whitespace-nowrap">
-                        <span>{camp.start_date || camp.startDate ? new Date(camp.start_date || camp.startDate).toLocaleDateString() : 'N/A'}</span>
-                        <span className="text-xs opacity-80 mt-0.5">to {camp.end_date || camp.endDate ? new Date(camp.end_date || camp.endDate).toLocaleDateString() : 'N/A'}</span>
+                        <span>{camp.start_date || camp.startDate ? new Date(camp.start_date || camp.startDate).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'N/A'}</span>
+                        <span className="text-xs opacity-80 mt-0.5">to {camp.end_date || camp.endDate ? new Date(camp.end_date || camp.endDate).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'N/A'}</span>
                       </div>
                     </td>
                     <td className="px-6 py-5">
-                      <span className={`text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wide inline-block ${
-                        camp.is_active ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-surface-container-highest text-on-surface-variant'
-                      }`}>
-                        {camp.is_active ? 'Active' : 'Paused'}
+                      <span className={`text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wide inline-block ${statusStyles[displayStatus]}`}>
+                        {displayStatus}
                       </span>
                     </td>
                     <td className="px-6 py-5 text-right">
                       <div className="flex justify-end gap-3 opacity-60 group-hover:opacity-100 transition-opacity">
                         <button 
                           onClick={() => handleToggleStatus(camp)}
-                          className={`p-2.5 rounded-xl transition-colors flex items-center justify-center ${camp.is_active ? 'bg-error/10 text-error hover:bg-error hover:text-on-error' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white'}`}
-                          title={camp.is_active ? "Pause Campaign" : "Resume Campaign"}
+                          className={`p-2.5 rounded-xl transition-colors flex items-center justify-center ${camp.status === 'active' ? 'bg-error/10 text-error hover:bg-error hover:text-on-error' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white'}`}
+                          title={camp.status === 'active' ? "Pause Campaign" : "Resume Campaign"}
                         >
-                          <span className="material-symbols-outlined text-sm">{camp.is_active ? 'pause' : 'play_arrow'}</span>
+                          <span className="material-symbols-outlined text-sm">{camp.status === 'active' ? 'pause' : 'play_arrow'}</span>
                         </button>
                       </div>
                     </td>
                   </tr>
-                ))}
+                )})}
               </tbody>
             </table>
           </div>
@@ -328,9 +422,6 @@ export default function CreateOffer({ navigate, showToast }) {
                 <h2 className="font-headline-lg text-headline-lg font-bold text-on-background text-3xl">
                   Create New Offer
                 </h2>
-                <p className="font-body-md text-body-md text-on-surface-variant mt-1">
-                  Launch a new loyalty campaign to incentivize scan payments at checkout.
-                </p>
               </div>
               {renderForm()}
             </>

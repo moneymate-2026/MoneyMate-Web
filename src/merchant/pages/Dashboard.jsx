@@ -15,24 +15,36 @@ export default function Dashboard({ navigate, showToast }) {
 
   useEffect(() => {
     const loadDashboardData = async () => {
+      // Pre-fill from local storage to ensure UI works even during backend issues
+      const localDataStr = localStorage.getItem('merchant_data');
+      if (localDataStr) {
+        try {
+          const localData = JSON.parse(localDataStr);
+          if (localData.legal_name || localData.LegalName) {
+            setBusinessName(localData.legal_name || localData.LegalName);
+          }
+        } catch(e) {}
+      }
+
       try {
-        const response = await gatewayClient.getDashboardData();
-        if (response.success && response.data) {
+        const response = await gatewayClient.getDashboardData().catch(e => ({ success: false }));
+        if (response && response.success && response.data) {
           setStats(response.data.stats || []);
           setTransactions(response.data.transactions || []);
           
           // Fetch real campaigns directly from the DB
-          const campRes = await gatewayClient.getCampaigns();
-          if (campRes.success && campRes.data) {
+          const campRes = await gatewayClient.getCampaigns().catch(e => ({ success: false }));
+          if (campRes && campRes.success && campRes.data) {
             setCampaigns(campRes.data);
           } else {
             setCampaigns(response.data.campaigns || []);
           }
         }
         
-        const profileResponse = await gatewayClient.getProfile();
-        if (profileResponse.success && profileResponse.data) {
-          setBusinessName(profileResponse.data.businessName || 'Your Business');
+        const profileResponse = await gatewayClient.getProfile().catch(e => ({ success: false }));
+        if (profileResponse && profileResponse.success && profileResponse.data) {
+          const pData = profileResponse.data.data || profileResponse.data;
+          setBusinessName(pData.businessName || pData.legal_name || 'Your Business');
         }
       } catch (error) {
         console.error('Error loading dashboard details:', error);

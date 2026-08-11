@@ -23,21 +23,40 @@ export default function Profile({ navigate, showToast }) {
 
   useEffect(() => {
     const fetchProfile = async () => {
+      // First, try loading whatever is in local storage as a fallback
       try {
-        const response = await gatewayClient.getProfile();
-        if (response.success && response.data) {
-          setFormData({
-            businessName: response.data.businessName || '',
-            dbaName: response.data.dbaName || '',
-            address: response.data.address || '',
-            businessType: response.data.businessType || 'Limited Liability Company (LLC)',
-            taxId: response.data.taxId || '',
-            ownerName: response.data.ownerName || '',
-            email: response.data.email || '',
-            mobile: response.data.mobile || '',
-            profileImage: response.data.profileImage || '',
-            createdAt: response.data.createdAt || '',
-          });
+        const localDataStr = localStorage.getItem('merchant_data');
+        if (localDataStr) {
+          const localData = JSON.parse(localDataStr);
+          setFormData(prev => ({
+            ...prev,
+            businessName: localData.legal_name || localData.LegalName || localData.businessName || prev.businessName,
+            email: localData.contact_email || localData.email || prev.email,
+            dbaName: localData.dba_name || localData.dbaName || prev.dbaName,
+            address: localData.registered_address || localData.address || prev.address,
+            ownerName: localData.owner_name || localData.ownerName || prev.ownerName,
+            mobile: localData.mobile_number || localData.mobile || prev.mobile,
+          }));
+        }
+      } catch (e) {}
+
+      try {
+        const response = await gatewayClient.getProfile().catch(e => ({ success: false }));
+        if (response && response.success && response.data) {
+          const pData = response.data.data || response.data;
+          setFormData(prev => ({
+            ...prev,
+            businessName: pData.businessName || pData.legal_name || prev.businessName,
+            dbaName: pData.dbaName || pData.dba_name || prev.dbaName,
+            address: pData.address || pData.registered_address || prev.address,
+            businessType: pData.businessType || pData.business_type || prev.businessType,
+            taxId: pData.taxId || pData.tax_id || prev.taxId,
+            ownerName: pData.ownerName || pData.owner_name || prev.ownerName,
+            email: pData.email || pData.contact_email || prev.email,
+            mobile: pData.mobile || pData.mobile_number || prev.mobile,
+            profileImage: pData.profileImage || prev.profileImage,
+            createdAt: pData.createdAt || pData.created_at || prev.createdAt,
+          }));
         }
       } catch (error) {
         console.error('Failed to load profile:', error);

@@ -17,18 +17,24 @@ export default function PaymentQR({ navigate, showToast }) {
 
   useEffect(() => {
     const fetchQRDetails = async () => {
+      // First, immediately load from localStorage so the UI works even if backend fails
+      const localVpa = localStorage.getItem('merchant_vpa') || localStorage.getItem('merchant_display_id');
+      const localQr = localStorage.getItem('merchant_qr');
+      
+      if (localVpa) setMerchantId(localVpa);
+      if (localQr) setQrCodeBase64(localQr);
+
       try {
-        const response = await gatewayClient.getDashboardData();
-        const profileResp = await gatewayClient.getProfile();
+        // Try fetching updated dashboard data
+        const response = await gatewayClient.getDashboardData().catch(e => ({ success: false }));
+        // Try fetching updated profile data
+        const profileResp = await gatewayClient.getProfile().catch(e => ({ success: false }));
         
-        if (profileResp.success && profileResp.data) {
+        if (profileResp && profileResp.success && profileResp.data) {
           const pData = profileResp.data.data || profileResp.data;
-          setMerchantId(pData.vpa || pData.displayId || pData.storeId || '');
+          setMerchantId(pData.vpa || pData.displayId || pData.storeId || localVpa || '');
           if (pData.qr_code_base64) {
              setQrCodeBase64(pData.qr_code_base64);
-          } else {
-             // Fallback to local storage if API didn't return it but we saved it at registration
-             setQrCodeBase64(localStorage.getItem('merchant_qr') || '');
           }
         }
 

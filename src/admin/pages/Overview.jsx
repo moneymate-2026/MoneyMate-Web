@@ -1,7 +1,7 @@
 import KpiCard from "../components/KpiCard";
 import DataTable from "../components/DataTable";
 import StatusBadge from "../components/StatusBadge";
-import { Users, Store, Wallet, Activity, ArrowUpRight } from "lucide-react";
+import { Users, Store, Wallet, Activity, ArrowUpRight, Gift, Banknote, CreditCard } from "lucide-react";
 import {
   AreaChart,
   Area,
@@ -23,11 +23,11 @@ const chartData = [
 ];
 
 const recentTransactions = [
-  { id: "TXN-001", user: "Alice Smith", amount: "$1,200.00", date: "2026-07-23", status: "Completed" },
-  { id: "TXN-002", user: "Bob Jones", amount: "$450.00", date: "2026-07-23", status: "Pending" },
-  { id: "TXN-003", user: "Charlie Davis", amount: "$3,400.00", date: "2026-07-22", status: "Completed" },
-  { id: "TXN-004", user: "Diana Evans", amount: "$150.00", date: "2026-07-22", status: "Failed" },
-  { id: "TXN-005", user: "Ethan Hall", amount: "$890.00", date: "2026-07-21", status: "Completed" },
+  { id: "TXN-001", user: "Alice Smith", amount: "₹1,200.00", date: "2026-07-23", status: "Completed" },
+  { id: "TXN-002", user: "Bob Jones", amount: "₹450.00", date: "2026-07-23", status: "Pending" },
+  { id: "TXN-003", user: "Charlie Davis", amount: "₹3,400.00", date: "2026-07-22", status: "Completed" },
+  { id: "TXN-004", user: "Diana Evans", amount: "₹150.00", date: "2026-07-22", status: "Failed" },
+  { id: "TXN-005", user: "Ethan Hall", amount: "₹890.00", date: "2026-07-21", status: "Completed" },
 ];
 
 export default function Overview() {
@@ -65,12 +65,26 @@ export default function Overview() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <KpiCard 
           title="Total Revenue" 
-          value="$124,500" 
+          value="₹1,24,500" 
           trend="up" 
           trendValue="12.5%" 
+          icon={Banknote} 
+        />
+        <KpiCard 
+          title="Reward Pool" 
+          value="₹45,200" 
+          trend="up" 
+          trendValue="5.2%" 
+          icon={Gift} 
+        />
+        <KpiCard 
+          title="System Wallet" 
+          value="₹8,90,500" 
+          trend="up" 
+          trendValue="3.1%" 
           icon={Wallet} 
         />
         <KpiCard 
