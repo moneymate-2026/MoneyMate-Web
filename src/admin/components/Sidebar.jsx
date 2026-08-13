@@ -14,7 +14,9 @@ import {
   Settings2,
   Tag,
   QrCode,
-  Crown
+  Crown,
+  AlertTriangle,
+  Headphones
 } from "lucide-react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -49,11 +51,18 @@ const navGroups = [
     ]
   },
   {
+    category: "SUPPORT & COMPLIANCE",
+    items: [
+      { path: "/admin/reports", icon: FileText, label: "Reports" },
+      { path: "/admin/complaints", icon: AlertTriangle, label: "Complaints" },
+      { path: "/admin/feedbacks", icon: MessageSquare, label: "Feedbacks" },
+      { path: "/admin/support", icon: Headphones, label: "Chat Support" },
+    ]
+  },
+  {
     category: "SYSTEM & SETTINGS",
     items: [
-      { path: "/admin/reports", icon: FileText, label: "Reports & Compliance" },
       { path: "/admin/audit", icon: ShieldAlert, label: "Audit Logs" },
-      { path: "/admin/support", icon: MessageSquare, label: "Chat Support" },
       { path: "/admin/rbac", icon: Key, label: "RBAC" },
       { path: "/admin/config", icon: Settings2, label: "Web Config" },
       { path: "/admin/settings", icon: Settings, label: "Settings" },

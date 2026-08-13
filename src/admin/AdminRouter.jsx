@@ -10,6 +10,8 @@ import StoreQRs from "./pages/StoreQRs";
 import MerchantPlans from "./pages/MerchantPlans";
 import Transactions from "./pages/Transactions";
 import Reports from "./pages/Reports";
+import Complaints from "./pages/Complaints";
+import Feedbacks from "./pages/Feedbacks";
 import AuditLogs from "./pages/AuditLogs";
 import ChatSupport from "./pages/ChatSupport";
 import RBAC from "./pages/RBAC";
@@ -32,6 +34,8 @@ export default function AdminRouter() {
         <Route path="merchant-plans" element={<MerchantPlans />} />
         <Route path="transactions" element={<Transactions />} />
         <Route path="reports" element={<Reports />} />
+        <Route path="complaints" element={<Complaints />} />
+        <Route path="feedbacks" element={<Feedbacks />} />
         <Route path="audit" element={<AuditLogs />} />
         <Route path="support" element={<ChatSupport />} />
         <Route path="rbac" element={<RBAC />} />
