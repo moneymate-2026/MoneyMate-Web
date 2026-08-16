@@ -1,29 +1,23 @@
 import { useState, useEffect } from "react";
-import StatusBadge from "../components/StatusBadge";
-import KpiCard from "../components/KpiCard";
 import { adminMerchantService } from "../services/merchants";
 import { 
-  UserCheck, 
   ShieldAlert, 
   CheckCircle2, 
   XCircle, 
   FileText, 
   Search, 
-  Filter, 
   Store, 
-  Calendar, 
-  Award, 
-  AlertTriangle,
-  ChevronRight,
+  ExternalLink,
+  RefreshCcw,
   X
 } from "lucide-react";
+import clsx from "clsx";
 
 export default function KYCVerification() {
   const [merchants, setMerchants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("Pending");
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [filter, setFilter] = useState("All");
   const [toast, setToast] = useState(null);
 
   const showToast = (message, type = "success") => {
@@ -31,11 +25,32 @@ export default function KYCVerification() {
     setTimeout(() => setToast(null), 3500);
   };
 
-  const fetchKYCList = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await adminMerchantService.getMerchants();
-      setMerchants(response.data);
+      const [kycRes, merchRes] = await Promise.all([
+        adminMerchantService.getAllKYCDocuments(),
+        adminMerchantService.getMerchants()
+      ]);
+
+      const merchData = merchRes.data || [];
+      let actualKyc = [];
+      if (kycRes.data && Array.isArray(kycRes.data.data)) {
+        actualKyc = kycRes.data.data;
+      } else if (Array.isArray(kycRes.data)) {
+        actualKyc = kycRes.data;
+      }
+
+      // Merge them
+      const merged = merchData.map(m => {
+        const doc = actualKyc.find(k => k.store_id === m.id) || null;
+        return {
+          ...m,
+          kycDoc: doc
+        };
+      });
+
+      setMerchants(merged);
     } catch (error) {
       showToast("Error loading KYC list", "error");
     } finally {
@@ -44,52 +59,63 @@ export default function KYCVerification() {
   };
 
   useEffect(() => {
-    fetchKYCList();
+    fetchData();
   }, []);
 
-  const handleApprove = async (id, e) => {
-    if (e) e.stopPropagation();
+  const handleApprove = async (storeId) => {
     try {
-      await adminMerchantService.approveKYC(id);
-      showToast(`Successfully verified KYC for store ${id}!`);
-      fetchKYCList();
-      if (selectedItem && selectedItem.id === id) {
-        setSelectedItem(prev => ({ ...prev, kycStatus: "Approved", status: "Active" }));
-      }
+      await adminMerchantService.approveKYC(storeId);
+      showToast(`Successfully verified KYC for store!`);
+      fetchData();
     } catch (err) {
       showToast("Approval failed", "error");
     }
   };
 
-  const handleReject = async (id, e) => {
-    if (e) e.stopPropagation();
+  const handleReject = async (storeId) => {
     try {
-      await adminMerchantService.rejectKYC(id);
-      showToast(`Rejected KYC documents for store ${id}.`, "error");
-      fetchKYCList();
-      if (selectedItem && selectedItem.id === id) {
-        setSelectedItem(prev => ({ ...prev, kycStatus: "Rejected", status: "Suspended" }));
-      }
+      await adminMerchantService.rejectKYC(storeId);
+      showToast(`Rejected KYC documents for store.`, "error");
+      fetchData();
     } catch (err) {
       showToast("Rejection failed", "error");
     }
   };
 
+  const getStatus = (m) => {
+    if (!m.kycDoc) {
+      // No documents uploaded, so rely on store status if available, otherwise Pending
+      if (m.status === "active" || m.status === "verified") return "Approved";
+      if (m.status === "blocked" || m.status === "rejected") return "Rejected";
+      return "Pending";
+    }
+    const doc = m.kycDoc;
+    if (doc.store_status === "rejected" || doc.store_status === "blocked") return "Rejected";
+    if (doc.is_verified || doc.store_status === "active" || doc.store_status === "verified") return "Approved";
+    return "Pending";
+  };
+
   const filteredData = merchants.filter(m => {
+    const storeName = m.businessName || m.ownerName || m.legalName || "Unknown Store";
+    const aadhaar = m.kycDoc?.aadhaar_number || "";
+    const id = m.id || "";
+    
     const matchesSearch = 
-      m.businessName.toLowerCase().includes(search.toLowerCase()) || 
-      m.ownerName.toLowerCase().includes(search.toLowerCase()) ||
-      m.id.toLowerCase().includes(search.toLowerCase());
-    const matchesFilter = filter === "All" || m.kycStatus === filter;
+      storeName.toLowerCase().includes(search.toLowerCase()) || 
+      aadhaar.toLowerCase().includes(search.toLowerCase()) ||
+      id.toLowerCase().includes(search.toLowerCase());
+      
+    const status = getStatus(m);
+    const matchesFilter = filter === "All" || status === filter;
+    
     return matchesSearch && matchesFilter;
   });
 
-  const pendingCount = merchants.filter(m => m.kycStatus === "Pending").length;
-  const approvedCount = merchants.filter(m => m.kycStatus === "Approved").length;
-  const rejectedCount = merchants.filter(m => m.kycStatus === "Rejected").length;
+  const pendingCount = merchants.filter(d => getStatus(d) === "Pending").length;
+  const rejectedCount = merchants.filter(d => getStatus(d) === "Rejected").length;
 
   return (
-    <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
+    <div className="h-[calc(100vh-6rem)] flex flex-col p-2 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Toast Notification */}
       {toast && (
         <div className={`fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-2xl border flex items-center gap-3 animate-bounce ${
@@ -104,264 +130,217 @@ export default function KYCVerification() {
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-[26px] font-extrabold text-admin-on-surface tracking-tight">KYC Verification Dashboard</h2>
-            {pendingCount > 0 && (
-              <span className="bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-full animate-pulse">
-                {pendingCount} Action Req.
-              </span>
-            )}
           </div>
-
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-semibold">
-          {["Pending", "Approved", "Rejected", "All"].map(status => (
-            <button
-              key={status}
-              onClick={() => setFilter(status)}
-              className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
-                filter === status 
-                  ? "bg-admin-primary text-white shadow-md shadow-admin-primary/20" 
-                  : "bg-admin-surface-container border border-admin-outline-variant text-admin-on-surface-variant hover:bg-admin-surface-container-low"
-              }`}
-            >
-              {status === "Pending" && <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />}
-              {status === "Approved" && <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />}
-              {status === "Rejected" && <XCircle className="w-3.5 h-3.5 text-red-500" />}
-              <span>{status}</span>
-              <span className="opacity-75">
-                ({status === "All" ? merchants.length : merchants.filter(m => m.kycStatus === status).length})
-              </span>
-            </button>
-          ))}
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-2 text-xs font-semibold mr-4">
+            {["All", "Pending", "Approved", "Rejected"].map(status => (
+              <button
+                key={status}
+                onClick={() => setFilter(status)}
+                className={clsx(
+                  "px-4 py-2 rounded-xl transition-all flex items-center gap-1.5",
+                  filter === status 
+                    ? "bg-admin-primary text-white shadow-sm" 
+                    : "bg-admin-surface-container border border-admin-outline-variant text-admin-on-surface-variant hover:bg-admin-surface-container-high"
+                )}
+              >
+                {status === "Pending" && <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />}
+                {status === "Approved" && <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />}
+                {status === "Rejected" && <XCircle className="w-3.5 h-3.5 text-red-500" />}
+                <span>{status}</span>
+              </button>
+            ))}
+          </div>
+          <button 
+            onClick={fetchData}
+            className="flex items-center justify-center p-2 text-admin-on-surface-variant hover:text-admin-on-surface hover:bg-admin-surface-container-high rounded-lg transition-colors"
+            title="Refresh Data"
+          >
+            <RefreshCcw size={20} className={loading ? "animate-spin" : ""} />
+          </button>
         </div>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <KpiCard title="Pending KYC Reviews" value={pendingCount} trend="down" trendValue="Requires Action" icon={ShieldAlert} />
-        <KpiCard title="Approved This Month" value={approvedCount} trend="up" trendValue="+8.4% rate" icon={CheckCircle2} />
-        <KpiCard title="Rejected Applications" value={rejectedCount} trend="down" trendValue="Low fraud" icon={XCircle} />
-        <KpiCard title="Avg Verification Time" value="1.4 days" trend="up" trendValue="SLA Met" icon={UserCheck} />
-      </div>
-
-      {/* Search Bar */}
-      <div className="bg-admin-surface-container border border-admin-outline-variant rounded-xl p-4 flex items-center gap-3">
-        <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg border border-admin-outline-variant/60 focus-within:border-admin-primary focus-within:ring-2 focus-within:ring-admin-primary/20 transition-all bg-admin-surface-container-lowest">
-          <Search className="w-4 h-4 text-admin-on-surface-variant" />
-          <input 
-            type="text"
-            placeholder="Search by store name, owner, or Store ID..."
-            className="bg-transparent border-none outline-none text-sm w-full text-admin-on-surface"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          {search && (
-            <button onClick={() => setSearch("")} className="text-admin-on-surface-variant hover:text-admin-on-surface">
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Applications Grid / Cards */}
-      {loading ? (
-        <div className="p-16 flex flex-col items-center justify-center text-admin-on-surface-variant bg-admin-surface-container border rounded-2xl">
-          <div className="w-9 h-9 border-4 border-admin-outline-variant border-t-admin-primary rounded-full animate-spin mb-4"></div>
-          <p className="font-semibold text-sm">Loading KYC verification files...</p>
-        </div>
-      ) : filteredData.length === 0 ? (
-        <div className="bg-admin-surface-container border rounded-2xl p-12 text-center space-y-3">
-          <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto opacity-80" />
-          <h3 className="font-bold text-lg text-admin-on-surface">All caught up!</h3>
-          <p className="text-sm text-admin-on-surface-variant max-w-sm mx-auto">
-            No merchant applications matching the selected &quot;{filter}&quot; criteria were found.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredData.map(item => (
-            <div 
-              key={item.id}
-              onClick={() => setSelectedItem(item)}
-              className={`bg-admin-surface-container border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group ${
-                item.kycStatus === "Pending" ? "border-l-4 border-l-amber-500" :
-                item.kycStatus === "Approved" ? "border-l-4 border-l-green-500" : "border-l-4 border-l-red-500"
-              }`}
-            >
-              <div className="space-y-3">
-                <div className="flex justify-between items-start">
-                  <span className="font-mono text-xs font-bold bg-admin-surface-container-highest px-2 py-0.5 rounded text-admin-on-surface">
-                    {item.id}
-                  </span>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                    item.kycStatus === "Pending" ? "bg-amber-100 text-amber-800" :
-                    item.kycStatus === "Approved" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                  }`}>
-                    {item.kycStatus}
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className="font-bold text-lg text-admin-on-surface group-hover:text-admin-primary transition-colors">
-                    {item.businessName}
-                  </h3>
-                  <p className="text-xs text-admin-on-surface-variant flex items-center gap-1 mt-0.5">
-                    <span>Owner:</span> <span className="font-semibold text-admin-on-surface">{item.ownerName}</span>
-                  </p>
-                </div>
-
-                <div className="p-3 rounded-xl bg-admin-surface-container-high border border-admin-outline-variant space-y-1.5 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-admin-on-surface-variant">Document Type:</span>
-                    <span className="font-semibold text-admin-on-surface">Business License & EIN</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-admin-on-surface-variant">Submitted Date:</span>
-                    <span className="font-semibold text-admin-on-surface">{item.kycDocs?.submittedDate || item.registeredDate}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-admin-on-surface-variant">Bank Setup:</span>
-                    <span className="font-semibold text-green-600">Verified</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4 mt-4 border-t border-admin-outline-variant/60 flex items-center justify-between">
-                <span className="text-xs font-semibold text-admin-primary flex items-center gap-1 group-hover:underline">
-                  <span>Inspect Files</span> <ChevronRight className="w-3.5 h-3.5" />
-                </span>
-                
-                {item.kycStatus === "Pending" && (
-                  <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-                    <button 
-                      onClick={(e) => handleReject(item.id, e)}
-                      className="px-2.5 py-1.5 bg-red-50 hover:bg-red-600 hover:text-white text-red-600 text-xs font-semibold rounded-lg transition-all"
-                    >
-                      Reject
-                    </button>
-                    <button 
-                      onClick={(e) => handleApprove(item.id, e)}
-                      className="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all"
-                    >
-                      Approve
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* KYC Inspection Modal */}
-      {selectedItem && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-admin-surface-container rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden border border-admin-outline-variant animate-in zoom-in-95 duration-200">
-            <div className="p-6 border-b border-admin-outline-variant flex justify-between items-center bg-admin-surface-container-high">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-admin-primary/10 text-admin-primary flex items-center justify-center font-bold">
-                  <FileText className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-lg text-admin-on-surface">{selectedItem.businessName}</h3>
-                  <span className="font-mono text-xs text-admin-on-surface-variant">{selectedItem.id} • KYC Inspection</span>
-                </div>
-              </div>
-              <button 
-                onClick={() => setSelectedItem(null)}
-                className="p-1.5 hover:bg-admin-surface-container-highest rounded-full text-admin-on-surface-variant hover:text-admin-on-surface transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-5">
-              <div className="flex items-center justify-between p-3 rounded-xl bg-admin-surface-container-highest border">
-                <div>
-                  <span className="text-xs text-admin-on-surface-variant block">Verification Status</span>
-                  <span className={`font-bold text-sm ${
-                    selectedItem.kycStatus === "Approved" ? "text-green-600" :
-                    selectedItem.kycStatus === "Pending" ? "text-amber-600" : "text-red-600"
-                  }`}>
-                    {selectedItem.kycStatus}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-xs text-admin-on-surface-variant block">Risk Assessment</span>
-                  <span className="font-bold text-sm text-green-600">Low Risk (98/100)</span>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <h4 className="font-bold text-sm text-admin-on-surface border-b pb-2">Uploaded Verification Files</h4>
-                
-                <div className="p-4 rounded-xl border border-admin-outline-variant bg-admin-surface-container hover:border-admin-primary/40 transition-all flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <FileText className="w-8 h-8 text-indigo-600 shrink-0" />
-                    <div>
-                      <p className="font-bold text-xs text-admin-on-surface">{selectedItem.kycDocs?.businessLicense || "Business_License_Official.pdf"}</p>
-                      <span className="text-[11px] text-admin-on-surface-variant">2.4 MB • PDF • Verified digitally</span>
-                    </div>
-                  </div>
-                  <button onClick={() => showToast("Downloading Document...")} className="px-3 py-1 bg-admin-surface-container-highest hover:bg-admin-surface-container-highest text-admin-on-surface rounded-lg text-xs font-semibold">
-                    Preview
-                  </button>
-                </div>
-
-                <div className="p-4 rounded-xl border border-admin-outline-variant bg-admin-surface-container hover:border-admin-primary/40 transition-all flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <FileText className="w-8 h-8 text-amber-600 shrink-0" />
-                    <div>
-                      <p className="font-bold text-xs text-admin-on-surface">Tax ID / EIN Verification: {selectedItem.kycDocs?.taxId || "EIN-88-291039"}</p>
-                      <span className="text-[11px] text-green-600 font-semibold">IRS Database Match Confirmed</span>
-                    </div>
-                  </div>
-                  <span className="text-xs font-bold text-green-600">Passed</span>
-                </div>
-
-                <div className="p-4 rounded-xl border border-admin-outline-variant bg-admin-surface-container hover:border-admin-primary/40 transition-all flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <FileText className="w-8 h-8 text-green-600 shrink-0" />
-                    <div>
-                      <p className="font-bold text-xs text-admin-on-surface">Settlement Account: {selectedItem.kycDocs?.bankAccount || "Chase ****4920"}</p>
-                      <span className="text-[11px] text-admin-on-surface-variant">ACH Verification successful</span>
-                    </div>
-                  </div>
-                  <span className="text-xs font-bold text-green-600">Active</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-5 border-t border-admin-outline-variant bg-admin-surface-container-high flex justify-between items-center">
-              <button 
-                onClick={() => setSelectedItem(null)}
-                className="px-4 py-2 border border-admin-outline-variant text-admin-on-surface font-semibold text-xs rounded-xl hover:bg-admin-surface-container-highest transition-colors"
-              >
-                Close
-              </button>
-
-              <div className="flex items-center gap-2">
-                {selectedItem.kycStatus !== "Rejected" && (
-                  <button 
-                    onClick={() => handleReject(selectedItem.id)}
-                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5"
-                  >
-                    <XCircle className="w-4 h-4" /> Reject KYC
-                  </button>
-                )}
-                {selectedItem.kycStatus !== "Approved" && (
-                  <button 
-                    onClick={() => handleApprove(selectedItem.id)}
-                    className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5"
-                  >
-                    <CheckCircle2 className="w-4 h-4" /> Approve & Verify
-                  </button>
-                )}
-              </div>
+        <div className="bg-admin-surface-container border border-admin-outline-variant p-5 rounded-2xl flex flex-col justify-between shadow-sm relative overflow-hidden group">
+          <div className="flex justify-between items-start mb-4 relative z-10">
+            <h3 className="text-admin-on-surface-variant font-bold text-sm tracking-wide uppercase">Pending KYC Reviews</h3>
+            <div className="p-2.5 bg-amber-500/10 rounded-xl text-amber-600 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shadow-inner">
+              <ShieldAlert className="w-5 h-5" />
             </div>
           </div>
+          <div className="relative z-10">
+            <h4 className="text-3xl font-extrabold text-admin-on-surface mb-2 tracking-tight">{pendingCount}</h4>
+          </div>
         </div>
-      )}
+
+        <div className="bg-admin-surface-container border border-admin-outline-variant p-5 rounded-2xl flex flex-col justify-between shadow-sm relative overflow-hidden group">
+          <div className="flex justify-between items-start mb-4 relative z-10">
+            <h3 className="text-admin-on-surface-variant font-bold text-sm tracking-wide uppercase">Rejected Applications</h3>
+            <div className="p-2.5 bg-red-500/10 rounded-xl text-red-600 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shadow-inner">
+              <XCircle className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="relative z-10">
+            <h4 className="text-3xl font-extrabold text-admin-on-surface mb-2 tracking-tight">{rejectedCount}</h4>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col bg-admin-surface-container rounded-xl border border-admin-outline-variant overflow-hidden">
+        {/* Toolbar */}
+        <div className="p-4 border-b border-admin-outline-variant flex justify-between items-center bg-admin-surface-container-high">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-admin-on-surface-variant" size={18} />
+            <input
+              type="text"
+              placeholder="Search by store name or Aadhaar number..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-admin-surface-container border border-admin-outline-variant text-admin-on-surface rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-admin-primary/50"
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-admin-on-surface-variant hover:text-admin-on-surface">
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          <div className="text-sm text-admin-on-surface-variant font-medium">
+            Total: {filteredData.length}
+          </div>
+        </div>
+
+        {/* Table Area */}
+        <div className="flex-1 overflow-auto">
+          <table className="w-full text-left border-collapse whitespace-nowrap">
+            <thead className="bg-admin-surface-container-high sticky top-0 z-10 shadow-sm">
+              <tr>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant text-sm">Store Name</th>
+
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant text-sm">Aadhaar Doc</th>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant text-sm">Shop License</th>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant text-sm">Status</th>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant text-sm text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading && merchants.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="p-8 text-center text-admin-on-surface-variant">
+                    <div className="flex flex-col items-center justify-center">
+                      <RefreshCcw size={32} className="animate-spin mb-4" />
+                      <p>Loading KYC verifications...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredData.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="p-8 text-center text-admin-on-surface-variant">
+                    <div className="flex flex-col items-center justify-center">
+                      <FileText size={48} className="mb-4 opacity-20" />
+                      <p className="text-lg">No KYC applications found.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredData.map((m) => {
+                  const storeName = m.businessName || m.ownerName || m.legalName || "Unknown Store";
+                  const status = getStatus(m);
+                  const doc = m.kycDoc;
+
+                  return (
+                    <tr 
+                      key={m.id} 
+                      className="border-b border-admin-outline-variant hover:bg-admin-surface-container-high transition-colors"
+                    >
+                      <td className="p-4 align-middle">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 rounded bg-admin-surface-container-highest flex items-center justify-center text-admin-primary">
+                            <Store size={16} />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-admin-on-surface text-sm">{storeName}</span>
+                            <span className="font-mono text-[10px] text-admin-on-surface-variant mt-0.5">
+                              ID: {m.id.substring(0, 8)}...
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4 align-middle">
+                        {doc?.aadhaar_doc_url ? (
+                          <a 
+                            href={doc.aadhaar_doc_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-admin-surface-container-highest hover:bg-admin-primary/10 text-admin-primary rounded-lg text-xs font-semibold transition-colors border border-admin-outline-variant"
+                          >
+                            <ExternalLink size={14} /> View Aadhaar
+                          </a>
+                        ) : (
+                          <span className="text-xs text-admin-on-surface-variant italic">Not uploaded</span>
+                        )}
+                      </td>
+                      <td className="p-4 align-middle">
+                        {doc?.shop_license_url ? (
+                          <a 
+                            href={doc.shop_license_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-admin-surface-container-highest hover:bg-admin-primary/10 text-admin-primary rounded-lg text-xs font-semibold transition-colors border border-admin-outline-variant"
+                          >
+                            <ExternalLink size={14} /> View License
+                          </a>
+                        ) : (
+                          <span className="text-xs text-admin-on-surface-variant italic">Not uploaded</span>
+                        )}
+                      </td>
+                      <td className="p-4 align-middle">
+                        <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${
+                          status === 'Approved' ? 'bg-green-500/20 text-green-500' :
+                          status === 'Rejected' ? 'bg-red-500/20 text-red-500' :
+                          'bg-amber-500/20 text-amber-500'
+                        }`}>
+                          {status}
+                        </span>
+                      </td>
+                      <td className="p-4 align-middle text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {status === "Pending" ? (
+                            <>
+                              <button 
+                                onClick={() => handleApprove(m.id)}
+                                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-bold text-xs transition-all bg-green-50 text-green-600 hover:bg-green-600 hover:text-white border border-green-100 hover:border-green-600"
+                              >
+                                <CheckCircle2 size={14} />
+                                <span>Approve (Active)</span>
+                              </button>
+                              <button 
+                                onClick={() => handleReject(m.id)}
+                                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-bold text-xs transition-all bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-100 hover:border-red-600"
+                              >
+                                <XCircle size={14} />
+                                <span>Reject (Blocked)</span>
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-xs font-semibold text-admin-on-surface-variant italic">
+                              Status resolved
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }

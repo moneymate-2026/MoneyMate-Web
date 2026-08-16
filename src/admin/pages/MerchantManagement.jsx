@@ -234,11 +234,10 @@ export default function MerchantManagement() {
         <table>
           <thead>
             <tr>
-              <th>Store ID</th>
+              <th>Store ID & Reg. Date</th>
               <th>Business Name & Category</th>
               <th>Owner Contact</th>
               <th>Tier</th>
-              <th>QR Volume</th>
               <th>Status</th>
               <th>KYC Status</th>
             </tr>
@@ -246,12 +245,11 @@ export default function MerchantManagement() {
           <tbody>
             ${filteredMerchants.map(m => `
               <tr>
-                <td><strong>${m.id}</strong><br><span style="font-size:10px;color:#64748b">${m.registeredDate}</span></td>
+                <td><strong>${m.id}</strong><br><span style="font-size:10px;color:#64748b">${new Date(m.registeredDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span></td>
                 <td><strong>${m.businessName}</strong><br><span style="font-size:10px;color:#6366f1">${m.category}</span></td>
                 <td>${m.ownerName}<br><span style="font-size:10px;color:#64748b">${m.email}</span></td>
                 <td>${m.tier}</td>
-                <td><strong>${m.volume}</strong><br><span style="font-size:10px;color:#16a34a">Rewards: ${m.cashbackIssued}</span></td>
-                <td><span class="badge ${m.status === 'Active' ? 'badge-active' : m.status === 'Suspended' ? 'badge-suspended' : 'badge-pending'}">${m.status}</span></td>
+                <td><span class="badge ${m.status === 'Active' ? 'badge-active' : m.status === 'Blocked' ? 'badge-suspended' : 'badge-pending'}">${m.status}</span></td>
                 <td>${m.kycStatus}</td>
               </tr>
             `).join('')}
@@ -297,7 +295,7 @@ export default function MerchantManagement() {
       showToast(`Merchant ${id} KYC rejected and suspended.`, "error");
       fetchMerchants();
       if (selectedMerchant && selectedMerchant.id === id) {
-        setSelectedMerchant(prev => ({ ...prev, kycStatus: "Rejected", status: "Suspended", qrStatus: "Disabled" }));
+        setSelectedMerchant(prev => ({ ...prev, kycStatus: "Rejected", status: "Blocked", qrStatus: "Disabled" }));
       }
     } catch (error) {
       showToast("Error rejecting KYC", "error");
@@ -306,7 +304,7 @@ export default function MerchantManagement() {
 
   const handleToggleStatus = async (id, currentStatus, e) => {
     if (e) e.stopPropagation();
-    const newStatus = currentStatus === "Active" ? "Suspended" : "Active";
+    const newStatus = currentStatus === "Active" ? "Blocked" : "Active";
     try {
       await adminMerchantService.updateMerchantStatus(id, newStatus);
       showToast(`Merchant ${id} status updated to ${newStatus}`);
@@ -357,7 +355,7 @@ export default function MerchantManagement() {
           <span className="font-mono text-xs font-bold bg-admin-surface-container-high px-2 py-0.5 rounded text-admin-on-surface">
             {row.displayId || row.id}
           </span>
-          <p className="text-[11px] text-admin-on-surface-variant mt-1">{row.registeredDate}</p>
+          <p className="text-[11px] text-admin-on-surface-variant mt-1">{new Date(row.registeredDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
         </div>
       )
     },
@@ -402,23 +400,14 @@ export default function MerchantManagement() {
       )
     },
     { 
-      header: "QR Volume", 
-      render: (row) => (
-        <div>
-          <p className="font-bold text-admin-on-surface text-sm">{row.volume}</p>
-          <p className="text-[11px] text-green-600 font-medium">Rewards: {row.cashbackIssued}</p>
-        </div>
-      )
-    },
-    { 
-      header: "KYC & Status", 
+      header: "Status", 
       render: (row) => (
         <div className="space-y-1">
           <StatusBadge 
             status={row.status} 
             variant={
               row.status === "Active" ? "success" : 
-              row.status === "Suspended" ? "error" : "warning"
+              row.status === "Blocked" ? "error" : "warning"
             } 
           />
           <div className="text-[10px] font-medium text-admin-on-surface-variant flex items-center gap-1">
@@ -462,14 +451,14 @@ export default function MerchantManagement() {
           )}
           <button 
             onClick={(e) => handleToggleStatus(row.id, row.status, e)}
-            className={`p-1.5 rounded-lg transition-all ${
+            className={`flex items-center gap-1 p-1.5 rounded-lg transition-all ${
               row.status === "Active" 
                 ? "bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white" 
                 : "bg-green-500/10 text-green-400 hover:bg-green-500 hover:text-white"
             }`}
-            title={row.status === "Active" ? "Suspend Merchant" : "Activate Merchant"}
+            title={row.status === "Active" ? "Block Merchant" : "Unblock Merchant"}
           >
-            {row.status === "Active" ? <Ban className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+            {row.status === "Active" ? <><Ban className="w-4 h-4" /> <span className="text-[10px] font-bold">Block</span></> : <><CheckCircle2 className="w-4 h-4" /> <span className="text-[10px] font-bold">Unblock</span></>}
           </button>
           <button 
             onClick={(e) => handleOpenDelete(row, e)}
@@ -583,7 +572,7 @@ export default function MerchantManagement() {
             <span className="text-admin-on-surface-variant mr-1 flex items-center gap-1">
               <Filter className="w-3.5 h-3.5" /> Status:
             </span>
-            {["All", "Active", "Pending KYC", "Suspended"].map(status => (
+            {["All", "Active", "Pending KYC", "Blocked"].map(status => (
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}

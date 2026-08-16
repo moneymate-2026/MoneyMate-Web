@@ -1,24 +1,19 @@
 import { useState, useEffect } from "react";
-import DataTable from "../components/DataTable";
-import StatusBadge from "../components/StatusBadge";
-import KpiCard from "../components/KpiCard";
 import { adminMerchantService } from "../services/merchants";
 import { 
-  QrCode, 
   Search, 
-  Store, 
   MapPin, 
-  RefreshCw, 
+  RefreshCcw, 
   Ban, 
   CheckCircle2, 
-  Activity, 
-  AlertOctagon, 
   X,
-  Smartphone
+  Store,
+  FileText
 } from "lucide-react";
+import clsx from "clsx";
 
 export default function StoreQRs() {
-  const [qrs, setQrs] = useState([]);
+  const [merchants, setMerchants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -29,137 +24,70 @@ export default function StoreQRs() {
     setTimeout(() => setToast(null), 3500);
   };
 
-  const fetchQRs = async () => {
+  const fetchMerchants = async () => {
     setLoading(true);
     try {
-      const response = await adminMerchantService.getStoreQRs();
-      setQrs(response.data);
+      // In getMerchants, we fetch all stores and map them.
+      // But adminMerchantService.getMerchants maps `VPA` if available.
+      // Wait, let's fetch raw if we need VPA, or we can just call it and check.
+      // Currently getMerchants returns mappedData, so we will use the raw response if possible, 
+      // or modify how we use getMerchants. Let's fetch directly using the underlying getMerchants and see if VPA is there.
+      const response = await adminMerchantService.getMerchants();
+      // Since merchants.js `getMerchants` drops some fields, let's just make a raw API call here 
+      // to ensure we have VPA and full details, or we can just rely on the API response directly here.
+      
+      // Let's assume adminMerchantService.getMerchants() maps it, we might need to modify merchants.js or fetch here.
+      // It's safer to use gatewayClient directly in the page to get the raw stores with VPA.
+      const { gatewayClient } = await import('../../api/gatewayClient');
+      const res = await gatewayClient.get('/admin/merchants');
+      const actualData = res.data?.data || res.data || [];
+      const stores = Array.isArray(actualData) ? actualData : [];
+      setMerchants(stores);
     } catch (error) {
-      showToast("Error loading store QRs", "error");
+      showToast("Error loading stores", "error");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchQRs();
+    fetchMerchants();
   }, []);
 
-  const handleToggleQR = async (qrId, currentStatus) => {
-    const newStatus = currentStatus === "Online" ? "Disabled" : "Online";
+  const handleToggleBlock = async (storeId, currentStatus) => {
+    // If it's active, block it (set to 'blocked' or 'suspended'). If blocked, activate it ('active').
+    const newStatus = (currentStatus?.toLowerCase() === 'active' || currentStatus?.toLowerCase() === 'verified') 
+      ? 'suspended' 
+      : 'active';
+    
     try {
-      await adminMerchantService.updateQRStatus(qrId, newStatus);
-      showToast(`Terminal ${qrId} changed to ${newStatus}`);
-      fetchQRs();
+      await adminMerchantService.updateMerchantStatus(storeId, newStatus);
+      showToast(`Store ${newStatus === 'suspended' ? 'blocked' : 'activated'} successfully!`);
+      fetchMerchants();
     } catch (error) {
-      showToast("Failed to update QR terminal", "error");
+      showToast("Failed to update status", "error");
     }
   };
 
-  const handleRegenerate = (qrId) => {
-    showToast(`New QR code cryptographic seed generated for ${qrId}!`);
-  };
-
-  const filteredQRs = qrs.filter(q => {
-    const matchesSearch = 
-      q.storeName.toLowerCase().includes(search.toLowerCase()) || 
-      q.qrId.toLowerCase().includes(search.toLowerCase()) ||
-      q.terminalId.toLowerCase().includes(search.toLowerCase()) ||
-      q.location.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === "All" || q.status === statusFilter;
+  const filteredMerchants = merchants.filter(m => {
+    const name = (m.LegalName || m.legal_name || m.OwnerName || "").toLowerCase();
+    const vpa = (m.VPA || m.vpa || "").toLowerCase();
+    const id = (m.ID || m.id || "").toLowerCase();
+    
+    const matchesSearch = name.includes(search.toLowerCase()) || vpa.includes(search.toLowerCase()) || id.includes(search.toLowerCase());
+    
+    let isBlocked = (m.Status || m.status || "").toLowerCase() === 'suspended';
+    let isActive = (m.Status || m.status || "").toLowerCase() === 'active' || (m.Status || m.status || "").toLowerCase() === 'verified';
+    
+    let matchesStatus = true;
+    if (statusFilter === "Active") matchesStatus = isActive;
+    if (statusFilter === "Blocked") matchesStatus = isBlocked;
+    
     return matchesSearch && matchesStatus;
   });
 
-  const onlineCount = qrs.filter(q => q.status === "Online").length;
-  const offlineCount = qrs.filter(q => q.status === "Offline" || q.status === "Disabled").length;
-
-  const columns = [
-    { 
-      header: "QR Code ID & Terminal", 
-      render: (row) => (
-        <div>
-          <div className="flex items-center gap-2">
-            <QrCode className="w-4 h-4 text-admin-primary" />
-            <span className="font-mono text-xs font-bold text-admin-on-surface">{row.qrId}</span>
-          </div>
-          <span className="text-[11px] text-admin-on-surface-variant font-semibold bg-admin-surface-container-highest px-1.5 py-0.2 rounded mt-1 inline-block">
-            {row.terminalId}
-          </span>
-        </div>
-      )
-    },
-    { 
-      header: "Assigned Store", 
-      render: (row) => (
-        <div>
-          <p className="font-bold text-admin-on-surface text-sm">{row.storeName}</p>
-          <p className="text-xs text-admin-on-surface-variant flex items-center gap-1 mt-0.5">
-            <MapPin className="w-3 h-3 text-admin-primary" /> {row.location}
-          </p>
-        </div>
-      )
-    },
-    { 
-      header: "Daily Scans", 
-      render: (row) => (
-        <div className="flex items-center gap-2">
-          <Activity className={`w-4 h-4 ${row.dailyScans > 50 ? "text-green-500" : "text-slate-400"}`} />
-          <span className="font-bold text-sm text-admin-on-surface">{row.dailyScans} scans today</span>
-        </div>
-      )
-    },
-    { 
-      header: "Processed Volume", 
-      render: (row) => (
-        <span className="font-mono text-sm font-bold text-admin-on-surface">{row.totalVolume}</span>
-      )
-    },
-    { 
-      header: "Last Activity", 
-      accessor: "lastScan" 
-    },
-    { 
-      header: "Terminal Status", 
-      render: (row) => (
-        <StatusBadge 
-          status={row.status} 
-          variant={
-            row.status === "Online" ? "success" : 
-            row.status === "Offline" ? "warning" : "error"
-          } 
-        />
-      )
-    },
-    {
-      header: "Actions",
-      render: (row) => (
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={() => handleRegenerate(row.qrId)}
-            className="p-1.5 bg-admin-surface-container-low text-admin-on-surface-variant hover:text-admin-primary hover:bg-admin-primary/10 rounded-lg transition-colors" 
-            title="Regenerate QR Seed / Reset Token"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
-          
-          <button 
-            onClick={() => handleToggleQR(row.qrId, row.status)}
-            className={`p-1.5 rounded-lg transition-all ${
-              row.status === "Online" 
-                ? "bg-red-50 text-red-600 hover:bg-red-600 hover:text-white" 
-                : "bg-green-50 text-green-600 hover:bg-green-600 hover:text-white"
-            }`}
-            title={row.status === "Online" ? "Disable Terminal QR" : "Activate Terminal QR"}
-          >
-            {row.status === "Online" ? <Ban className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
-          </button>
-        </div>
-      )
-    }
-  ];
-
   return (
-    <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
+    <div className="h-[calc(100vh-6rem)] flex flex-col p-2 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Toast */}
       {toast && (
         <div className={`fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-2xl border flex items-center gap-3 animate-bounce ${
@@ -172,69 +100,163 @@ export default function StoreQRs() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-[26px] font-extrabold text-admin-on-surface tracking-tight">Store QR & Terminal Directory</h2>
-            <span className="bg-green-100 text-green-800 text-xs font-bold px-2.5 py-1 rounded-full">
-              {onlineCount} Terminals Online
-            </span>
+          <h2 className="text-[26px] font-extrabold text-admin-on-surface tracking-tight">Store QR & VPA Directory</h2>
+        </div>
+
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-2 text-xs font-semibold mr-4">
+            {["All", "Active", "Blocked"].map(status => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={clsx(
+                  "px-4 py-2 rounded-xl transition-all",
+                  statusFilter === status 
+                    ? "bg-admin-primary text-white shadow-sm" 
+                    : "bg-admin-surface-container border border-admin-outline-variant text-admin-on-surface-variant hover:bg-admin-surface-container-high"
+                )}
+              >
+                {status}
+              </button>
+            ))}
           </div>
-
-        </div>
-
-        <div className="flex items-center gap-2 text-xs font-semibold">
-          {["All", "Online", "Offline", "Disabled", "Unverified"].map(status => (
-            <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
-              className={`px-3 py-1.5 rounded-xl transition-all ${
-                statusFilter === status 
-                  ? "bg-admin-primary text-white shadow-sm" 
-                  : "bg-admin-surface-container border border-admin-outline-variant text-admin-on-surface-variant hover:bg-admin-surface-container-low"
-              }`}
-            >
-              {status}
-            </button>
-          ))}
+          <button 
+            onClick={fetchMerchants}
+            className="flex items-center justify-center p-2 text-admin-on-surface-variant hover:text-admin-on-surface hover:bg-admin-surface-container-high rounded-lg transition-colors"
+            title="Refresh Data"
+          >
+            <RefreshCcw size={20} className={loading ? "animate-spin" : ""} />
+          </button>
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <KpiCard title="Active Store QRs" value={qrs.length} trend="up" trendValue="+15% expansion" icon={QrCode} />
-        <KpiCard title="Online Terminals" value={onlineCount} trend="up" trendValue="99.4% uptime" icon={Smartphone} />
-        <KpiCard title="Daily Scan Velocity" value="321 Scans" trend="up" trendValue="Peak hours" icon={Activity} />
-        <KpiCard title="Offline / Disabled" value={offlineCount} trend={offlineCount > 0 ? "down" : "up"} trendValue="Requires check" icon={AlertOctagon} />
-      </div>
-
-      {/* Search Bar */}
-      <div className="bg-admin-surface-container border border-admin-outline-variant rounded-xl p-4 flex items-center gap-3">
-        <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg border border-admin-outline-variant/60 focus-within:border-admin-primary focus-within:ring-2 focus-within:ring-admin-primary/20 transition-all bg-admin-surface-container-lowest">
-          <Search className="w-4 h-4 text-admin-on-surface-variant" />
-          <input 
-            type="text"
-            placeholder="Search QRs by store name, terminal ID, QR ID, or city..."
-            className="bg-transparent border-none outline-none text-sm w-full text-admin-on-surface"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          {search && (
-            <button onClick={() => setSearch("")} className="text-admin-on-surface-variant hover:text-admin-on-surface">
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="bg-admin-surface-container border border-admin-outline-variant rounded-2xl shadow-sm overflow-hidden">
-        {loading ? (
-          <div className="p-16 flex flex-col items-center justify-center text-admin-on-surface-variant">
-            <div className="w-9 h-9 border-4 border-admin-outline-variant border-t-admin-primary rounded-full animate-spin mb-4"></div>
-            <p className="font-semibold text-sm">Loading QR terminal registry...</p>
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col bg-admin-surface-container rounded-xl border border-admin-outline-variant overflow-hidden">
+        {/* Toolbar */}
+        <div className="p-4 border-b border-admin-outline-variant flex justify-between items-center bg-admin-surface-container-high">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-admin-on-surface-variant" size={18} />
+            <input
+              type="text"
+              placeholder="Search by store name, VPA, or ID..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-admin-surface-container border border-admin-outline-variant text-admin-on-surface rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-admin-primary/50"
+            />
           </div>
-        ) : (
-          <DataTable columns={columns} data={filteredQRs} className="border-0 shadow-none rounded-none" />
-        )}
+          <div className="text-sm text-admin-on-surface-variant font-medium">
+            Total: {filteredMerchants.length}
+          </div>
+        </div>
+
+        {/* Table Area */}
+        <div className="flex-1 overflow-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-admin-surface-container-high sticky top-0 z-10">
+              <tr>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant">Store Name</th>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant">VPA Address</th>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant">Status</th>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading && merchants.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="p-8 text-center text-admin-on-surface-variant">
+                    <div className="flex flex-col items-center justify-center">
+                      <RefreshCcw size={32} className="animate-spin mb-4" />
+                      <p>Loading stores...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredMerchants.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="p-8 text-center text-admin-on-surface-variant">
+                    <div className="flex flex-col items-center justify-center">
+                      <FileText size={48} className="mb-4 opacity-20" />
+                      <p className="text-lg">No stores found.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredMerchants.map((m) => {
+                  const id = m.ID || m.id;
+                  const name = m.LegalName || m.legal_name || m.OwnerName || "Unknown Store";
+                  const vpa = m.VPA || m.vpa || "N/A";
+                  const rawStatus = (m.Status || m.status || "").toLowerCase();
+                  
+                  const isBlocked = rawStatus === 'suspended' || rawStatus === 'rejected';
+                  const isActive = rawStatus === 'active' || rawStatus === 'verified';
+                  
+                  let displayStatus = rawStatus;
+                  if (isActive) displayStatus = "Active";
+                  else if (isBlocked) displayStatus = "Blocked";
+                  else displayStatus = "Pending";
+
+                  return (
+                    <tr 
+                      key={id} 
+                      className="border-b border-admin-outline-variant hover:bg-admin-surface-container-high transition-colors"
+                    >
+                      <td className="p-4 align-top">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 rounded-lg bg-admin-surface-container-highest flex items-center justify-center text-admin-primary">
+                            <Store size={20} />
+                          </div>
+                          <div>
+                            <div className="font-bold text-admin-on-surface">{name}</div>
+                            <div className="text-xs text-admin-on-surface-variant font-mono mt-0.5" title={id}>
+                              {id.substring(0, 8)}...
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4 align-middle">
+                        <span className="font-mono text-sm font-semibold text-admin-on-surface bg-admin-surface-container-highest px-2 py-1 rounded">
+                          {vpa}
+                        </span>
+                      </td>
+                      <td className="p-4 align-middle">
+                        <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${
+                          displayStatus === 'Active' ? 'bg-green-500/20 text-green-500' :
+                          displayStatus === 'Blocked' ? 'bg-red-500/20 text-red-500' :
+                          'bg-amber-500/20 text-amber-500'
+                        }`}>
+                          {displayStatus}
+                        </span>
+                      </td>
+                      <td className="p-4 align-middle text-right">
+                        <div className="flex items-center justify-end">
+                          <button 
+                            onClick={() => handleToggleBlock(id, rawStatus)}
+                            className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${
+                              displayStatus === "Blocked" 
+                                ? "bg-green-50 text-green-600 hover:bg-green-600 hover:text-white" 
+                                : "bg-red-50 text-red-600 hover:bg-red-600 hover:text-white"
+                            }`}
+                          >
+                            {displayStatus === "Blocked" ? (
+                              <>
+                                <CheckCircle2 size={16} />
+                                <span>Unblock</span>
+                              </>
+                            ) : (
+                              <>
+                                <Ban size={16} />
+                                <span>Block</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

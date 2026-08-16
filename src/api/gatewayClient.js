@@ -1,15 +1,9 @@
 // MoneyMate Gateway Client
 // Handles backend connectivity to the Go merchant service on Render
 
-const formatBaseUrl = (url) => {
-  if (!url) return 'http://localhost:8080/api/v1';
-  if (url.endsWith('/api/v1')) return url;
-  if (url.endsWith('/')) return `${url}api/v1`;
-  return `${url}/api/v1`;
-};
-
-const BASE_URL = formatBaseUrl(import.meta.env.VITE_API_URL);
-const ADMIN_BASE_URL = formatBaseUrl(import.meta.env.VITE_ADMIN_API_URL);
+const rawBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const BASE_URL = rawBaseUrl.endsWith('/api/v1') ? rawBaseUrl : `${rawBaseUrl}/api/v1`;
+const ADMIN_BASE_URL = import.meta.env.VITE_ADMIN_API_URL || BASE_URL;
 
 // Helper to simulate an Auth Service UUID generation
 const getOwnerId = (email) => {
@@ -85,8 +79,11 @@ const handleRequest = async (url, options = {}) => {
           errorMessage = 'Invalid password verification.';
         } else if (errorMessage.toLowerCase().includes('invalid credentials') || errorMessage.toLowerCase().includes('unauthorized')) {
           errorMessage = 'Invalid email or password. Please try again.';
+        } else if (errorMessage.includes('validation failed') || errorMessage.includes('invalid request')) {
+          // Let validation errors pass through
         } else {
           // Catch-all: Never expose raw unhandled Go errors (like "pq: ...") directly to the UI
+          console.error("Backend error suppressed:", errorMessage);
           errorMessage = 'An unexpected server error occurred. Please try again or contact support.';
         }
       }
@@ -108,6 +105,35 @@ export const gatewayClient = {
   put: (url, data, options = {}) => handleRequest(url, { ...options, method: 'PUT', body: JSON.stringify(data) }),
   patch: (url, data, options = {}) => handleRequest(url, { ...options, method: 'PATCH', body: JSON.stringify(data) }),
   delete: (url, options = {}) => handleRequest(url, { ...options, method: 'DELETE' }),
+
+  // Support Admin Routes
+  getAdminComplaints: async (limit = 100, offset = 0) => {
+    return handleRequest(`/admin/support/complaints?limit=${limit}&offset=${offset}`, { method: 'GET' });
+  },
+
+  getAdminReports: async (limit = 100, offset = 0) => {
+    return handleRequest(`/admin/support/reports?limit=${limit}&offset=${offset}`, { method: 'GET' });
+  },
+
+  // Chat Support Routes (Admin)
+  getAdminChatInbox: async () => {
+    return handleRequest('/admin/support/chat/inbox', { method: 'GET' });
+  },
+
+  getAdminChatHistory: async (userId) => {
+    return handleRequest(`/admin/support/chat/history/${userId}`, { method: 'GET' });
+  },
+
+  sendAdminChatMessage: async (receiverId, receiverType, message) => {
+    return handleRequest('/admin/support/chat/send', {
+      method: 'POST',
+      body: JSON.stringify({
+        receiver_id: receiverId,
+        receiver_type: receiverType,
+        message: message
+      })
+    });
+  },
 
   // Auth operations
   login: async (email, password) => {

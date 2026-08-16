@@ -31,7 +31,6 @@ const navGroups = [
     items: [
       { path: "/admin", icon: LayoutDashboard, label: "Overview" },
       { path: "/admin/wallets", icon: Wallet, label: "Wallets" },
-      { path: "/admin/transactions", icon: Activity, label: "Transactions" },
     ]
   },
   {

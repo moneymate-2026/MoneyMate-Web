@@ -13,6 +13,12 @@ export default function UserManagement() {
   const [modalMode, setModalMode] = useState('create'); // 'create' or 'edit'
   const [modalData, setModalData] = useState({ id: '', email: '', phone: '', full_name: '', password: '', role: 'user' });
   const [modalLoading, setModalLoading] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -38,9 +44,10 @@ export default function UserManagement() {
       await adminUserService.updateUserStatus(id, newStatus.toLowerCase());
       // Refresh local state without full reload
       setUsers(users.map(u => u.id === id ? { ...u, status: newStatus } : u));
+      showToast(`User status updated to ${newStatus}`, "success");
     } catch (error) {
       console.error(`Failed to update status for user ${id}`, error);
-      alert('Failed to update user status.');
+      showToast('Failed to update user status.', "error");
     } finally {
       setActionLoading(null);
     }
@@ -53,9 +60,10 @@ export default function UserManagement() {
     try {
       await adminUserService.deleteUser(id);
       setUsers(users.filter(u => u.id !== id));
+      showToast('User deleted successfully', "success");
     } catch (error) {
       console.error(`Failed to delete user ${id}`, error);
-      alert('Failed to delete user.');
+      showToast('Failed to delete user.', "error");
     } finally {
       setActionLoading(null);
     }
@@ -88,10 +96,11 @@ export default function UserManagement() {
         await adminUserService.updateUser(modalData.id, modalData);
       }
       setIsModalOpen(false);
+      showToast(modalMode === 'create' ? 'User created successfully' : 'User updated successfully', "success");
       fetchUsers(); // Refresh the list
     } catch (error) {
       console.error(`Failed to ${modalMode} user`, error);
-      alert(`Failed to ${modalMode} user. Please try again.`);
+      showToast(`Failed to ${modalMode} user: ${error.message || 'Please try again.'}`, "error");
     } finally {
       setModalLoading(false);
     }
@@ -345,6 +354,15 @@ export default function UserManagement() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed bottom-6 right-6 px-6 py-3 rounded-lg shadow-xl border flex items-center gap-3 z-[100] animate-in slide-in-from-bottom-5 fade-in duration-300 ${
+          toast.type === "error" ? "bg-red-600 text-white border-red-700" : "bg-green-600 text-white border-green-700"
+        }`}>
+          <span className="font-semibold text-sm">{toast.message}</span>
         </div>
       )}
     </div>

@@ -1,26 +1,20 @@
 import { useState, useEffect } from "react";
-import DataTable from "../components/DataTable";
-import StatusBadge from "../components/StatusBadge";
-import KpiCard from "../components/KpiCard";
 import { adminMerchantService } from "../services/merchants";
 import { 
-  Megaphone, 
-  Tag, 
   Search, 
-  Filter, 
-  Play, 
-  Pause, 
-  Flag, 
-  DollarSign, 
-  Users, 
-  Calendar, 
-  CheckCircle2, 
-  AlertTriangle,
+  RefreshCcw, 
+  Tag,
+  XCircle,
+  FileText,
+  Store,
+  Calendar,
   X
 } from "lucide-react";
+import clsx from "clsx";
 
 export default function MerchantCampaigns() {
   const [campaigns, setCampaigns] = useState([]);
+  const [merchantsMap, setMerchantsMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -31,11 +25,30 @@ export default function MerchantCampaigns() {
     setTimeout(() => setToast(null), 3500);
   };
 
-  const fetchCampaigns = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await adminMerchantService.getMerchantCampaigns();
-      setCampaigns(response.data);
+      // Fetch both campaigns and merchants to map store names
+      const [campRes, merchRes] = await Promise.all([
+        adminMerchantService.getAdminCampaigns(),
+        adminMerchantService.getMerchants()
+      ]);
+
+      const merchData = merchRes.data || [];
+      const mMap = {};
+      merchData.forEach(m => {
+        mMap[m.id] = m.businessName || m.ownerName;
+      });
+      setMerchantsMap(mMap);
+
+      let actualCampaigns = [];
+      if (campRes.data && Array.isArray(campRes.data.data)) {
+        actualCampaigns = campRes.data.data;
+      } else if (Array.isArray(campRes.data)) {
+        actualCampaigns = campRes.data;
+      }
+
+      setCampaigns(actualCampaigns);
     } catch (error) {
       showToast("Error loading campaigns", "error");
     } finally {
@@ -44,127 +57,47 @@ export default function MerchantCampaigns() {
   };
 
   useEffect(() => {
-    fetchCampaigns();
+    fetchData();
   }, []);
 
-  const handleUpdateStatus = async (id, newStatus) => {
+  const handleCloseCampaign = async (id) => {
     try {
-      await adminMerchantService.updateCampaignStatus(id, newStatus);
-      showToast(`Campaign ${id} updated to ${newStatus}`);
-      fetchCampaigns();
+      await adminMerchantService.updateCampaignStatus(id, false); // false = paused/closed
+      showToast(`Campaign ${id} has been closed.`);
+      fetchData();
     } catch (error) {
       showToast("Error updating campaign status", "error");
     }
   };
 
+  const activeCount = campaigns.filter(c => {
+    const isExpired = new Date(c.EndDate) < new Date();
+    return !isExpired && (c.Status || "").toLowerCase() === "active";
+  }).length;
+
   const filteredCampaigns = campaigns.filter(c => {
+    const id = c.ID || c.id || "";
+    const storeName = merchantsMap[c.StoreID] || "Unknown Store";
+    const name = c.Name || c.title || "";
+    
     const matchesSearch = 
-      c.title.toLowerCase().includes(search.toLowerCase()) || 
-      c.merchantName.toLowerCase().includes(search.toLowerCase()) ||
-      c.id.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === "All" || c.status === statusFilter;
+      name.toLowerCase().includes(search.toLowerCase()) || 
+      storeName.toLowerCase().includes(search.toLowerCase()) ||
+      id.toLowerCase().includes(search.toLowerCase());
+      
+    const isExpired = new Date(c.EndDate) < new Date();
+    const rawStatus = (c.Status || "").toLowerCase();
+    
+    let displayStatus = "Active";
+    if (rawStatus !== "active") displayStatus = "Closed";
+    if (isExpired) displayStatus = "Expired";
+
+    const matchesStatus = statusFilter === "All" || displayStatus === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const activeCount = campaigns.filter(c => c.status === "Active").length;
-  const flaggedCount = campaigns.filter(c => c.status === "Flagged").length;
-
-  const columns = [
-    { 
-      header: "Campaign ID", 
-      render: (row) => (
-        <span className="font-mono text-xs font-bold bg-admin-surface-container-highest px-2.5 py-1 rounded text-admin-on-surface">
-          {row.id}
-        </span>
-      )
-    },
-    { 
-      header: "Merchant & Title", 
-      render: (row) => (
-        <div>
-          <p className="font-bold text-admin-on-surface text-sm">{row.title}</p>
-          <span className="text-xs text-admin-primary font-semibold">{row.merchantName}</span>
-        </div>
-      )
-    },
-    { 
-      header: "Reward Type", 
-      render: (row) => (
-        <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 font-semibold text-xs rounded-lg border border-indigo-200">
-          {row.type}
-        </span>
-      )
-    },
-    { 
-      header: "Customer Scans", 
-      render: (row) => (
-        <div>
-          <span className="font-bold text-admin-on-surface text-sm">{row.scans.toLocaleString()} scans</span>
-          <p className="text-[11px] text-admin-on-surface-variant">Spent: {row.cashbackSpent} / {row.budget}</p>
-        </div>
-      )
-    },
-    { 
-      header: "Duration", 
-      render: (row) => (
-        <div className="text-xs text-admin-on-surface-variant">
-          <p>{row.startDate}</p>
-          <p>to {row.endDate}</p>
-        </div>
-      )
-    },
-    { 
-      header: "Status", 
-      render: (row) => (
-        <StatusBadge 
-          status={row.status} 
-          variant={
-            row.status === "Active" ? "success" : 
-            row.status === "Flagged" ? "error" : "warning"
-          } 
-        />
-      )
-    },
-    {
-      header: "Admin Actions",
-      render: (row) => (
-        <div className="flex items-center gap-2">
-          {row.status === "Active" ? (
-            <button 
-              onClick={() => handleUpdateStatus(row.id, "Paused")}
-              className="p-1.5 bg-amber-50 hover:bg-amber-500 hover:text-white text-amber-600 rounded-lg transition-all" 
-              title="Pause Campaign"
-            >
-              <Pause className="w-4 h-4" />
-            </button>
-          ) : (
-            <button 
-              onClick={() => handleUpdateStatus(row.id, "Active")}
-              className="p-1.5 bg-green-50 hover:bg-green-600 hover:text-white text-green-600 rounded-lg transition-all" 
-              title="Activate Campaign"
-            >
-              <Play className="w-4 h-4" />
-            </button>
-          )}
-          
-          <button 
-            onClick={() => handleUpdateStatus(row.id, row.status === "Flagged" ? "Active" : "Flagged")}
-            className={`p-1.5 rounded-lg transition-all ${
-              row.status === "Flagged" 
-                ? "bg-red-600 text-white hover:bg-red-700" 
-                : "bg-red-50 text-red-600 hover:bg-red-600 hover:text-white"
-            }`}
-            title="Flag as Suspicious / Policy Violation"
-          >
-            <Flag className="w-4 h-4" />
-          </button>
-        </div>
-      )
-    }
-  ];
-
   return (
-    <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
+    <div className="h-[calc(100vh-6rem)] flex flex-col p-2 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Toast */}
       {toast && (
         <div className={`fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-2xl border flex items-center gap-3 animate-bounce ${
@@ -177,69 +110,196 @@ export default function MerchantCampaigns() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-[26px] font-extrabold text-admin-on-surface tracking-tight">Merchant Campaigns & Offers</h2>
-            <span className="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-1 rounded-full">
-              {campaigns.length} Total Offers
-            </span>
-          </div>
-
+          <h2 className="text-[26px] font-extrabold text-admin-on-surface tracking-tight">Merchant Campaigns & Offers</h2>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-semibold">
-          {["All", "Active", "Paused", "Flagged"].map(status => (
-            <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
-              className={`px-3 py-1.5 rounded-xl transition-all ${
-                statusFilter === status 
-                  ? "bg-admin-primary text-white shadow-sm" 
-                  : "bg-admin-surface-container border border-admin-outline-variant text-admin-on-surface-variant hover:bg-admin-surface-container-low"
-              }`}
-            >
-              {status} ({status === "All" ? campaigns.length : campaigns.filter(c => c.status === status).length})
-            </button>
-          ))}
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-2 text-xs font-semibold mr-4">
+            {["All", "Active", "Closed", "Expired"].map(status => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={clsx(
+                  "px-4 py-2 rounded-xl transition-all",
+                  statusFilter === status 
+                    ? "bg-admin-primary text-white shadow-sm" 
+                    : "bg-admin-surface-container border border-admin-outline-variant text-admin-on-surface-variant hover:bg-admin-surface-container-high"
+                )}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+          <button 
+            onClick={fetchData}
+            className="flex items-center justify-center p-2 text-admin-on-surface-variant hover:text-admin-on-surface hover:bg-admin-surface-container-high rounded-lg transition-colors"
+            title="Refresh Data"
+          >
+            <RefreshCcw size={20} className={loading ? "animate-spin" : ""} />
+          </button>
         </div>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <KpiCard title="Active Campaigns" value={activeCount} trend="up" trendValue="+4 this wk" icon={Tag} />
-        <KpiCard title="Total Customer Scans" value="2,187" trend="up" trendValue="+24% engagement" icon={Users} />
-        <KpiCard title="Total Rewards Issued" value="$3,903.00" trend="up" trendValue="High ROI" icon={DollarSign} />
-        <KpiCard title="Flagged / Policy Alerts" value={flaggedCount} trend={flaggedCount > 0 ? "down" : "up"} trendValue="Action req." icon={AlertTriangle} />
-      </div>
-
-      {/* Search Bar */}
-      <div className="bg-admin-surface-container border border-admin-outline-variant rounded-xl p-4 flex items-center gap-3">
-        <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg border border-admin-outline-variant/60 focus-within:border-admin-primary focus-within:ring-2 focus-within:ring-admin-primary/20 transition-all bg-admin-surface-container-lowest">
-          <Search className="w-4 h-4 text-admin-on-surface-variant" />
-          <input 
-            type="text"
-            placeholder="Search campaigns by title, merchant name, or ID..."
-            className="bg-transparent border-none outline-none text-sm w-full text-admin-on-surface"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          {search && (
-            <button onClick={() => setSearch("")} className="text-admin-on-surface-variant hover:text-admin-on-surface">
-              <X className="w-4 h-4" />
-            </button>
-          )}
+        <div className="bg-admin-surface-container border border-admin-outline-variant p-5 rounded-2xl flex flex-col justify-between shadow-sm relative overflow-hidden group">
+          <div className="flex justify-between items-start mb-4 relative z-10">
+            <h3 className="text-admin-on-surface-variant font-bold text-sm tracking-wide uppercase">Active Campaigns</h3>
+            <div className="p-2.5 bg-admin-surface-container-highest rounded-xl text-admin-primary group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shadow-inner">
+              <Tag className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="relative z-10">
+            <h4 className="text-3xl font-extrabold text-admin-on-surface mb-2 tracking-tight">{activeCount}</h4>
+          </div>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-admin-surface-container border border-admin-outline-variant rounded-2xl shadow-sm overflow-hidden">
-        {loading ? (
-          <div className="p-16 flex flex-col items-center justify-center text-admin-on-surface-variant">
-            <div className="w-9 h-9 border-4 border-admin-outline-variant border-t-admin-primary rounded-full animate-spin mb-4"></div>
-            <p className="font-semibold text-sm">Loading promotional campaigns...</p>
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col bg-admin-surface-container rounded-xl border border-admin-outline-variant overflow-hidden">
+        {/* Toolbar */}
+        <div className="p-4 border-b border-admin-outline-variant flex justify-between items-center bg-admin-surface-container-high">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-admin-on-surface-variant" size={18} />
+            <input
+              type="text"
+              placeholder="Search campaigns by name, store, or ID..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-admin-surface-container border border-admin-outline-variant text-admin-on-surface rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-admin-primary/50"
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-admin-on-surface-variant hover:text-admin-on-surface">
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
-        ) : (
-          <DataTable columns={columns} data={filteredCampaigns} className="border-0 shadow-none rounded-none" />
-        )}
+          <div className="text-sm text-admin-on-surface-variant font-medium">
+            Total: {filteredCampaigns.length}
+          </div>
+        </div>
+
+        {/* Table Area */}
+        <div className="flex-1 overflow-auto">
+          <table className="w-full text-left border-collapse whitespace-nowrap">
+            <thead className="bg-admin-surface-container-high sticky top-0 z-10 shadow-sm">
+              <tr>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant text-sm">Store Name</th>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant text-sm">Campaign ID / Name</th>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant text-sm">Duration</th>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant text-sm">Category</th>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant text-sm">Type</th>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant text-sm">Status</th>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant text-sm text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading && campaigns.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="p-8 text-center text-admin-on-surface-variant">
+                    <div className="flex flex-col items-center justify-center">
+                      <RefreshCcw size={32} className="animate-spin mb-4" />
+                      <p>Loading campaigns...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredCampaigns.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="p-8 text-center text-admin-on-surface-variant">
+                    <div className="flex flex-col items-center justify-center">
+                      <FileText size={48} className="mb-4 opacity-20" />
+                      <p className="text-lg">No campaigns found.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredCampaigns.map((c) => {
+                  const id = c.ID || c.id || "Unknown";
+                  const storeName = merchantsMap[c.StoreID] || "Unknown Store";
+                  const name = c.Name || "Unnamed Campaign";
+                  const category = c.OfferCategory || "Uncategorized";
+                  const type = c.OfferType || "Standard";
+                  
+                  const isExpired = new Date(c.EndDate) < new Date();
+                  const rawStatus = (c.Status || "").toLowerCase();
+                  
+                  let displayStatus = "Active";
+                  if (rawStatus !== "active") displayStatus = "Closed";
+                  if (isExpired) displayStatus = "Expired";
+
+                  return (
+                    <tr 
+                      key={id} 
+                      className="border-b border-admin-outline-variant hover:bg-admin-surface-container-high transition-colors"
+                    >
+                      <td className="p-4 align-middle">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 rounded bg-admin-surface-container-highest flex items-center justify-center text-admin-primary">
+                            <Store size={16} />
+                          </div>
+                          <span className="font-bold text-admin-on-surface text-sm">{storeName}</span>
+                        </div>
+                      </td>
+                      <td className="p-4 align-middle">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-admin-on-surface text-sm">{name}</span>
+                          <span className="font-mono text-xs text-admin-on-surface-variant mt-0.5" title={id}>
+                            {id.substring(0, 8)}...
+                          </span>
+                        </div>
+                      </td>
+                      <td className="p-4 align-middle">
+                        <div className="flex items-center space-x-2 text-sm text-admin-on-surface-variant">
+                          <Calendar size={14} className="text-admin-primary" />
+                          <div className="flex flex-col text-xs">
+                            <span>{new Date(c.StartDate).toLocaleDateString()}</span>
+                            <span>{new Date(c.EndDate).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4 align-middle">
+                        <span className="px-2.5 py-1 bg-admin-surface-container-highest text-admin-on-surface font-semibold text-xs rounded border border-admin-outline-variant">
+                          {category}
+                        </span>
+                      </td>
+                      <td className="p-4 align-middle">
+                        <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 font-semibold text-xs rounded border border-indigo-200">
+                          {type}
+                        </span>
+                      </td>
+                      <td className="p-4 align-middle">
+                        <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${
+                          displayStatus === 'Active' ? 'bg-green-500/20 text-green-500' :
+                          displayStatus === 'Expired' ? 'bg-amber-500/20 text-amber-500' :
+                          'bg-red-500/20 text-red-500'
+                        }`}>
+                          {displayStatus}
+                        </span>
+                      </td>
+                      <td className="p-4 align-middle text-right">
+                        <div className="flex items-center justify-end">
+                          {displayStatus === "Active" ? (
+                            <button 
+                              onClick={() => handleCloseCampaign(id)}
+                              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-bold text-xs transition-all bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-100 hover:border-red-600"
+                            >
+                              <XCircle size={14} />
+                              <span>Close</span>
+                            </button>
+                          ) : (
+                            <span className="text-xs font-semibold text-admin-on-surface-variant italic">
+                              {displayStatus === "Expired" ? "Expired" : "Closed"}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

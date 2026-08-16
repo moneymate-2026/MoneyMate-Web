@@ -1,15 +1,32 @@
 import { useState, useRef, useEffect } from "react";
-import DataTable from "../components/DataTable";
-import { Download, Filter, Star, ChevronDown, Check } from "lucide-react";
+import { Download, Filter, Star, ChevronDown, Check, Calendar, FileText } from "lucide-react";
+import { gatewayClient } from '../../api/gatewayClient';
 
 export default function Feedbacks() {
-  const [feedbacks, setFeedbacks] = useState([]); // Empty array as requested, ready for backend data
-  const [loading, setLoading] = useState(false);
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [starFilter, setStarFilter] = useState("all");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterRef = useRef(null);
 
+  const fetchFeedbacks = async () => {
+    try {
+      setLoading(true);
+      const res = await gatewayClient.getAdminFeedbacks();
+      const data = res.data?.data || res.data || [];
+      if (Array.isArray(data)) {
+        setFeedbacks(data);
+      }
+    } catch (err) {
+      console.error("Failed to load feedbacks:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
+    fetchFeedbacks();
+    
     function handleClickOutside(event) {
       if (filterRef.current && !filterRef.current.contains(event.target)) {
         setIsFilterOpen(false);
@@ -21,47 +38,12 @@ export default function Feedbacks() {
     };
   }, []);
 
-  const columns = [
-    { 
-      header: "User", 
-      render: (row) => (
-        <div>
-          <p className="font-medium text-admin-on-surface">{row.name}</p>
-          <p className="text-xs text-admin-on-surface-variant">{row.email}</p>
-        </div>
-      )
-    },
-    { 
-      header: "Rating", 
-      render: (row) => (
-        <div className="flex items-center gap-1">
-          {[...Array(5)].map((_, i) => (
-            <Star 
-              key={i} 
-              className={`w-4 h-4 ${i < row.rating ? "text-amber-400 fill-amber-400" : "text-admin-outline-variant"}`} 
-            />
-          ))}
-        </div>
-      )
-    },
-    { 
-      header: "Description", 
-      render: (row) => (
-        <p className="text-sm text-admin-on-surface-variant max-w-md truncate" title={row.description}>
-          {row.description}
-        </p>
-      )
-    },
-    { 
-      header: "Date", 
-      accessor: "date" 
-    }
-  ];
+
 
   // Filtering and sorting logic (ready for when data is fetched)
   const filteredFeedbacks = feedbacks.filter(f => 
     starFilter === "all" ? true : f.rating === parseInt(starFilter)
-  ).sort((a, b) => new Date(b.date) - new Date(a.date)); // Latest first
+  ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // Latest first
 
   const filterOptions = [
     { value: "all", label: "All Ratings" },
@@ -126,21 +108,81 @@ export default function Feedbacks() {
         </div>
       </div>
 
-      <div className="bg-admin-surface-container border border-admin-outline-variant rounded-xl shadow-sm overflow-hidden flex flex-col min-h-[400px]">
-        {loading ? (
-          <div className="p-12 flex-1 flex flex-col items-center justify-center text-admin-on-surface-variant">
-            <div className="w-8 h-8 border-4 border-admin-outline-variant border-t-admin-primary rounded-full animate-spin mb-4"></div>
-            <p className="font-medium">Loading feedbacks...</p>
-          </div>
-        ) : filteredFeedbacks.length > 0 ? (
-          <DataTable columns={columns} data={filteredFeedbacks} className="border-0 shadow-none rounded-none flex-1" />
-        ) : (
-          <div className="p-12 flex-1 flex flex-col items-center justify-center text-admin-on-surface-variant">
-            <Star className="w-12 h-12 text-admin-outline-variant mb-4 opacity-50" />
-            <p className="font-medium text-lg text-admin-on-surface">No feedbacks found</p>
-            <p className="text-sm mt-1">User feedbacks will appear here once submitted.</p>
-          </div>
-        )}
+      <div className="flex-1 bg-admin-surface-container border border-admin-outline-variant rounded-xl shadow-sm overflow-hidden flex flex-col min-h-[400px]">
+        <div className="flex-1 overflow-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-admin-surface-container-high sticky top-0 z-10">
+              <tr>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant">Date</th>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant">Who Sent Feedback</th>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant">Star Rating</th>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant">Feedback Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading && feedbacks.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="p-12 text-center text-admin-on-surface-variant">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="w-8 h-8 border-4 border-admin-outline-variant border-t-admin-primary rounded-full animate-spin mb-4"></div>
+                      <p>Loading feedbacks...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredFeedbacks.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="p-12 text-center text-admin-on-surface-variant">
+                    <div className="flex flex-col items-center justify-center">
+                      <Star className="w-12 h-12 text-admin-outline-variant mb-4 opacity-50" />
+                      <p className="font-medium text-lg text-admin-on-surface">No feedbacks found</p>
+                      <p className="text-sm mt-1">User feedbacks will appear here once submitted.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredFeedbacks.map((row) => (
+                  <tr 
+                    key={row.id} 
+                    className="border-b border-admin-outline-variant hover:bg-admin-surface-container-high transition-colors"
+                  >
+                    <td className="p-4 align-top">
+                      <div className="flex flex-col">
+                        <div className="flex items-center space-x-2 text-sm text-admin-on-surface-variant">
+                          <Calendar size={14} />
+                          <span>{new Date(row.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <div className="text-xs text-admin-on-surface-variant mt-1 ml-5">
+                          {new Date(row.created_at).toLocaleTimeString()}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4 align-top">
+                      <div className="font-medium text-admin-on-surface">{row.user_type || 'Unknown'}</div>
+                      <div className="text-xs text-admin-on-surface-variant font-mono mt-1" title={row.user_id}>
+                        {row.user_id ? row.user_id.substring(0, 8) + '...' : 'Unknown'}
+                      </div>
+                    </td>
+                    <td className="p-4 align-top">
+                      <div className="flex items-center gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star 
+                            key={i} 
+                            className={`w-4 h-4 ${i < row.rating ? "text-amber-400 fill-amber-400" : "text-admin-outline-variant"}`} 
+                          />
+                        ))}
+                      </div>
+                    </td>
+                    <td className="p-4 align-top">
+                      <p className="text-sm text-admin-on-surface-variant max-w-md truncate" title={row.description}>
+                        {row.description}
+                      </p>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
         {/* Pagination UI */}
         <div className="p-4 border-t border-admin-outline-variant flex items-center justify-between text-sm text-admin-on-surface-variant mt-auto">

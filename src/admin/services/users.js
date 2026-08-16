@@ -10,7 +10,7 @@ export const adminUserService = {
       const formattedUsers = userList.map(u => ({
         ...u,
         name: u.full_name || u.name || "Unknown",
-        role: "User", // Update if role is fetched
+        role: u.role ? u.role.charAt(0).toUpperCase() + u.role.slice(1).toLowerCase() : "User",
         status: u.status ? u.status.charAt(0).toUpperCase() + u.status.slice(1).toLowerCase() : "Unknown",
         joined: new Date(u.created_at).toLocaleDateString()
       }));

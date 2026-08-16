@@ -21,8 +21,8 @@ export const adminMerchantService = {
           status = "Pending KYC";
           kycStatus = "Pending";
           qrStatus = "Unverified";
-        } else if (statusStr === "suspended" || statusStr === "rejected") {
-          status = "Suspended";
+        } else if (statusStr === "suspended" || statusStr === "rejected" || statusStr === "blocked") {
+          status = "Blocked";
           kycStatus = "Rejected";
           qrStatus = "Disabled";
         }
@@ -100,6 +100,10 @@ export const adminMerchantService = {
     return gatewayClient.put(`/admin/merchants/${id}/kyc/verify`, { is_verified: false, status: "rejected" });
   },
 
+  getAllKYCDocuments: async () => {
+    return gatewayClient.get('/admin/kyc');
+  },
+
   updateSubscriptionTier: async (id, tier) => {
     // Determine plan code based on tier name
     let planCode = "basic";
@@ -150,6 +154,10 @@ export const adminMerchantService = {
     return gatewayClient.get(`/admin/merchants/${storeId}/campaigns`);
   },
 
+  getAdminCampaigns: async () => {
+    return gatewayClient.get('/admin/campaigns');
+  },
+
   updateCampaignStatus: async (campaignId, isActive) => {
     return gatewayClient.put(`/admin/campaigns/${campaignId}/status`, { is_active: isActive });
   },
@@ -166,5 +174,9 @@ export const adminMerchantService = {
 
   getSubscriptionPlans: async () => {
     return gatewayClient.get('/merchant/subscriptions/plans');
+  },
+
+  getAdminSubscriptions: async () => {
+    return gatewayClient.get('/admin/subscriptions');
   }
 };

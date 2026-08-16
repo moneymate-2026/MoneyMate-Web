@@ -2,23 +2,20 @@ import { useState, useEffect } from "react";
 import KpiCard from "../components/KpiCard";
 import { adminMerchantService } from "../services/merchants";
 import { 
-  Crown, 
   DollarSign, 
   Users, 
-  TrendingUp, 
-  CheckCircle2, 
-  Edit3, 
-  Plus, 
-  ShieldCheck, 
-  Sparkles, 
-  Layers,
-  X
+  Search,
+  RefreshCcw,
+  Calendar,
+  XCircle,
+  FileText
 } from "lucide-react";
 
 export default function MerchantPlans() {
+  const [subscriptions, setSubscriptions] = useState([]);
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editingPlan, setEditingPlan] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [toast, setToast] = useState(null);
 
   const showToast = (message, type = "success") => {
@@ -26,33 +23,69 @@ export default function MerchantPlans() {
     setTimeout(() => setToast(null), 3500);
   };
 
-  const fetchPlans = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await adminMerchantService.getSubscriptionPlans();
-      setPlans(response.data);
+      const [plansRes, subsRes] = await Promise.all([
+        adminMerchantService.getSubscriptionPlans(),
+        adminMerchantService.getAdminSubscriptions()
+      ]);
+
+      setPlans(plansRes.data || []);
+      
+      const subsData = subsRes.data?.data || subsRes.data || [];
+      if (Array.isArray(subsData)) {
+        setSubscriptions(subsData);
+      }
     } catch (error) {
-      showToast("Failed to load subscription plans", "error");
+      showToast("Failed to load subscription data", "error");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPlans();
+    fetchData();
   }, []);
 
-  const handleSavePlan = (e) => {
-    e.preventDefault();
-    showToast(`Successfully updated ${editingPlan.name} pricing and feature entitlements!`);
-    setEditingPlan(null);
+  const handleCancelSubscription = (subId) => {
+    showToast(`Cancelled subscription ${subId}`, "success");
+    // Optionally call backend to cancel
   };
 
-  const totalMRR = "$44,930";
-  const totalSubscribers = plans.reduce((acc, p) => acc + p.activeMerchants, 0);
+  // Helper to find price for a plan code
+  const getPlanPrice = (planCode) => {
+    const plan = plans.find(p => p.id === planCode || p.plan_code === planCode || p.name?.toLowerCase() === planCode?.toLowerCase());
+    if (plan && plan.price) {
+      const priceStr = plan.price.toString().split(" ")[0].replace('$', '');
+      return parseFloat(priceStr) || 0;
+    }
+    // Fallback if not found in plans
+    if (planCode === 'premium') return 49.99;
+    if (planCode === 'enterprise') return 199.99;
+    return 0.00;
+  };
+
+  // Compute KPIs
+  const activeSubs = subscriptions.filter(s => s.status === 'active' || s.Status === 'active');
+  const totalSubscribers = activeSubs.length;
+  
+  const totalMRR = activeSubs.reduce((acc, sub) => {
+    const code = sub.plan_code || sub.PlanCode || 'basic';
+    return acc + getPlanPrice(code);
+  }, 0);
+
+  // Filter subscriptions
+  const filteredSubs = subscriptions.filter(sub => {
+    const q = searchQuery.toLowerCase();
+    const storeId = (sub.store_id || sub.StoreID || '').toLowerCase();
+    const planCode = (sub.plan_code || sub.PlanCode || '').toLowerCase();
+    const status = (sub.status || sub.Status || '').toLowerCase();
+    return storeId.includes(q) || planCode.includes(q) || status.includes(q);
+  });
 
   return (
-    <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
+    <div className="h-[calc(100vh-6rem)] flex flex-col p-2 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Toast */}
       {toast && (
         <div className={`fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-2xl border flex items-center gap-3 animate-bounce ${
@@ -64,177 +97,160 @@ export default function MerchantPlans() {
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-[26px] font-extrabold text-admin-on-surface tracking-tight">Merchant Subscription Plans</h2>
-            <span className="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full">
-              3 Active Tiers
-            </span>
-          </div>
-
-        </div>
-
+        <h2 className="text-[26px] font-extrabold text-admin-on-surface tracking-tight">Merchant Subscriptions</h2>
         <button 
-          onClick={() => showToast("Opening new custom tier builder...")}
-          className="px-4 py-2.5 bg-admin-primary text-admin-on-primary rounded-xl font-semibold shadow-md shadow-admin-primary/20 hover:bg-admin-primary-container transition-all flex items-center gap-2 text-sm self-start sm:self-auto"
+          onClick={fetchData}
+          className="flex items-center justify-center p-2 text-admin-on-surface-variant hover:text-admin-on-surface hover:bg-admin-surface-container-high rounded-lg transition-colors"
+          title="Refresh Data"
         >
-          <Plus className="w-4 h-4" /> Create Custom Tier
+          <RefreshCcw size={20} className={loading ? "animate-spin" : ""} />
         </button>
       </div>
 
       {/* KPI Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <KpiCard title="Total Monthly Revenue" value={totalMRR} trend="up" trendValue="+14.2% MRR" icon={DollarSign} />
-        <KpiCard title="Active Subscribers" value={totalSubscribers.toLocaleString()} trend="up" trendValue="+82 stores" icon={Users} />
-        <KpiCard title="Avg Revenue / Store" value="$31.64" trend="up" trendValue="+5.1% ARPU" icon={TrendingUp} />
-        <KpiCard title="Enterprise Adoption" value="16.9%" trend="up" trendValue="High retention" icon={Crown} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <KpiCard 
+          title="Total Monthly Revenue" 
+          value={`$${totalMRR.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} 
+          trend="up" 
+          trendValue="Based on active plans" 
+          icon={DollarSign} 
+        />
+        <KpiCard 
+          title="Active Subscribers" 
+          value={totalSubscribers.toLocaleString()} 
+          trend="up" 
+          trendValue="Currently active" 
+          icon={Users} 
+        />
       </div>
 
-      {/* Subscription Tier Cards Grid */}
-      {loading ? (
-        <div className="p-16 flex flex-col items-center justify-center text-admin-on-surface-variant bg-admin-surface-container border rounded-2xl">
-          <div className="w-9 h-9 border-4 border-admin-outline-variant border-t-admin-primary rounded-full animate-spin mb-4"></div>
-          <p className="font-semibold text-sm">Loading SaaS tier configurations...</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {plans.map((plan) => (
-            <div 
-              key={plan.id}
-              className={`bg-admin-surface-container rounded-3xl p-6 border flex flex-col justify-between relative shadow-sm hover:shadow-xl transition-all ${
-                plan.id === "PLAN-PREMIUM" 
-                  ? "border-amber-400 ring-2 ring-amber-400/30 bg-gradient-to-b from-amber-50/30 to-white" 
-                  : "border-admin-outline-variant"
-              }`}
-            >
-              {plan.id === "PLAN-PREMIUM" && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-white font-extrabold text-[10px] uppercase tracking-wider px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" /> Most Popular
-                </div>
-              )}
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-2xl bg-admin-surface-container-low flex items-center justify-center font-bold text-admin-primary">
-                    {plan.id === "PLAN-ENTERPRISE" ? <Crown className="w-6 h-6 text-indigo-600" /> :
-                     plan.id === "PLAN-PREMIUM" ? <Sparkles className="w-6 h-6 text-amber-500" /> :
-                     <Layers className="w-6 h-6 text-slate-600" />}
-                  </div>
-                  <span className="font-mono text-xs bg-admin-surface-container-highest text-slate-600 font-bold px-2 py-1 rounded-lg">
-                    {plan.activeMerchants} Stores
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className="text-xl font-extrabold text-admin-on-surface">{plan.name}</h3>
-                  <div className="flex items-baseline gap-1 mt-1">
-                    <span className="text-3xl font-black text-admin-on-surface">{plan.price.split(" / ")[0]}</span>
-                    <span className="text-sm font-semibold text-admin-on-surface-variant">/ month</span>
-                  </div>
-                  <p className="text-xs text-green-600 font-bold mt-1">
-                    Generates {plan.mrr} MRR
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t border-admin-outline-variant/60 space-y-2.5">
-                  <span className="text-xs font-bold uppercase tracking-wider text-admin-on-surface-variant block">
-                    Included Entitlements:
-                  </span>
-                  {plan.features.map((feat, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-xs text-admin-on-surface font-medium">
-                      <CheckCircle2 className={`w-4 h-4 shrink-0 ${plan.id === "PLAN-PREMIUM" ? "text-amber-500" : "text-green-600"}`} />
-                      <span>{feat}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-6 mt-6 border-t border-admin-outline-variant/60">
-                <button 
-                  onClick={() => setEditingPlan(plan)}
-                  className={`w-full py-2.5 rounded-xl font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2 ${
-                    plan.id === "PLAN-PREMIUM" 
-                      ? "bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/20" 
-                      : "bg-admin-surface-container-low hover:bg-admin-surface-container text-admin-on-surface"
-                  }`}
-                >
-                  <Edit3 className="w-4 h-4" /> Edit Tier Pricing & Perks
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Edit Tier Modal */}
-      {editingPlan && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-admin-surface-container rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border border-admin-outline-variant animate-in zoom-in-95 duration-200">
-            <div className="p-6 border-b border-admin-outline-variant flex justify-between items-center bg-admin-surface-container-high">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-admin-primary/10 text-admin-primary flex items-center justify-center font-bold">
-                  <Edit3 className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-lg text-admin-on-surface">Edit {editingPlan.name}</h3>
-                  <span className="text-xs text-admin-on-surface-variant">Update monthly pricing & limits</span>
-                </div>
-              </div>
-              <button 
-                onClick={() => setEditingPlan(null)}
-                className="p-1.5 hover:bg-admin-surface-container-highest rounded-full text-admin-on-surface-variant hover:text-admin-on-surface transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSavePlan} className="p-6 space-y-4">
-              <div>
-                <label className="text-xs font-bold text-admin-on-surface-variant block mb-1">Tier Display Name</label>
-                <input 
-                  type="text" 
-                  defaultValue={editingPlan.name} 
-                  className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-admin-on-surface-variant block mb-1">Monthly Billing Price ($)</label>
-                <input 
-                  type="text" 
-                  defaultValue={editingPlan.price} 
-                  className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-admin-on-surface-variant block mb-1">Feature Entitlements (One per line)</label>
-                <textarea 
-                  rows={4}
-                  defaultValue={editingPlan.features.join("\n")} 
-                  className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-xs font-medium bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none font-mono"
-                />
-              </div>
-
-              <div className="pt-4 border-t flex justify-end gap-3">
-                <button 
-                  type="button"
-                  onClick={() => setEditingPlan(null)}
-                  className="px-4 py-2 border border-admin-outline-variant text-admin-on-surface font-semibold text-xs rounded-xl hover:bg-admin-surface-container-highest transition-colors"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit"
-                  className="px-5 py-2 bg-admin-primary hover:bg-admin-primary-container text-white font-semibold text-xs rounded-xl shadow-md transition-all"
-                >
-                  Save Tier Changes
-                </button>
-              </div>
-            </form>
+      {/* Main Content - Table */}
+      <div className="flex-1 flex flex-col bg-admin-surface-container rounded-xl border border-admin-outline-variant overflow-hidden">
+        {/* Toolbar */}
+        <div className="p-4 border-b border-admin-outline-variant flex justify-between items-center bg-admin-surface-container-high">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-admin-on-surface-variant" size={18} />
+            <input
+              type="text"
+              placeholder="Search by merchant ID, plan, or status..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-admin-surface-container border border-admin-outline-variant text-admin-on-surface rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-admin-primary/50"
+            />
+          </div>
+          <div className="text-sm text-admin-on-surface-variant font-medium">
+            Total: {filteredSubs.length}
           </div>
         </div>
-      )}
+
+        {/* Table Area */}
+        <div className="flex-1 overflow-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-admin-surface-container-high sticky top-0 z-10">
+              <tr>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant">Start Date</th>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant">End Date</th>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant">Which Subscription</th>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant">Which Merchant</th>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant">Amount</th>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant">Status</th>
+                <th className="p-4 font-semibold text-admin-on-surface-variant border-b border-admin-outline-variant">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading && subscriptions.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="p-8 text-center text-admin-on-surface-variant">
+                    <div className="flex flex-col items-center justify-center">
+                      <RefreshCcw size={32} className="animate-spin mb-4" />
+                      <p>Loading subscriptions...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredSubs.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="p-8 text-center text-admin-on-surface-variant">
+                    <div className="flex flex-col items-center justify-center">
+                      <FileText size={48} className="mb-4 opacity-20" />
+                      <p className="text-lg">No subscriptions found.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredSubs.map((sub) => {
+                  const id = sub.id || sub.ID;
+                  const storeId = sub.store_id || sub.StoreID;
+                  const planCode = sub.plan_code || sub.PlanCode || 'Unknown';
+                  const status = (sub.status || sub.Status || '').toLowerCase();
+                  
+                  // Use robust property fallback
+                  const startStr = sub.current_period_start || sub.CurrentPeriodStart || sub.created_at || sub.CreatedAt;
+                  const endStr = sub.current_period_end || sub.CurrentPeriodEnd;
+                  
+                  const amount = getPlanPrice(planCode);
+
+                  return (
+                    <tr 
+                      key={id} 
+                      className="border-b border-admin-outline-variant hover:bg-admin-surface-container-high transition-colors"
+                    >
+                      <td className="p-4 align-top">
+                        <div className="flex items-center space-x-2 text-sm text-admin-on-surface-variant">
+                          <Calendar size={14} />
+                          <span>{startStr ? new Date(startStr).toLocaleDateString() : 'N/A'}</span>
+                        </div>
+                      </td>
+                      <td className="p-4 align-top">
+                        <div className="flex items-center space-x-2 text-sm text-admin-on-surface-variant">
+                          <Calendar size={14} />
+                          <span>{endStr ? new Date(endStr).toLocaleDateString() : 'N/A'}</span>
+                        </div>
+                      </td>
+                      <td className="p-4 align-top">
+                        <span className="px-2 py-1 bg-admin-surface-container-highest rounded text-sm font-semibold text-admin-on-surface capitalize">
+                          {planCode}
+                        </span>
+                      </td>
+                      <td className="p-4 align-top">
+                        <div className="text-sm font-mono text-admin-on-surface-variant" title={storeId}>
+                          {storeId ? `${storeId.substring(0, 8)}...` : 'Unknown'}
+                        </div>
+                      </td>
+                      <td className="p-4 align-top">
+                        <div className="text-sm font-semibold text-green-500">
+                          ${amount.toFixed(2)}
+                        </div>
+                      </td>
+                      <td className="p-4 align-top">
+                        <span className={`px-2 py-1 rounded text-xs font-semibold capitalize ${
+                          status === 'active' ? 'bg-green-500/20 text-green-500' :
+                          status === 'cancelled' ? 'bg-admin-error/20 text-admin-error' :
+                          'bg-gray-500/20 text-gray-400'
+                        }`}>
+                          {status}
+                        </span>
+                      </td>
+                      <td className="p-4 align-top">
+                        {status === 'active' && (
+                          <button 
+                            onClick={() => handleCancelSubscription(id)}
+                            className="flex items-center space-x-1 text-admin-error hover:text-red-400 bg-admin-error/10 hover:bg-admin-error/20 px-2 py-1 rounded text-sm transition-colors"
+                            title="Cancel Subscription"
+                          >
+                            <XCircle size={16} />
+                            <span>Cancel</span>
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
