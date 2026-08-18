@@ -107,22 +107,16 @@ export default function Wallets() {
         <KpiCard 
           title="System Wallet" 
           value={`₹${systemWallet.toLocaleString('en-IN')}`}
-          trend="up" 
-          trendValue="3.1%" 
           icon={Wallet} 
         />
         <KpiCard 
           title="Total Revenue" 
           value={`₹${totalRevenue.toLocaleString('en-IN')}`} 
-          trend="up" 
-          trendValue="12.5%" 
           icon={Banknote} 
         />
         <KpiCard 
           title="Reward Pool" 
           value={`₹${rewardPool.toLocaleString('en-IN')}`} 
-          trend="up" 
-          trendValue="0.0%" 
           icon={Gift} 
         />
       </div>

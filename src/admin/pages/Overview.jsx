@@ -69,43 +69,31 @@ export default function Overview() {
         <KpiCard 
           title="Total Revenue" 
           value="₹1,24,500" 
-          trend="up" 
-          trendValue="12.5%" 
           icon={Banknote} 
         />
         <KpiCard 
           title="Reward Pool" 
           value="₹45,200" 
-          trend="up" 
-          trendValue="5.2%" 
           icon={Gift} 
         />
         <KpiCard 
           title="System Wallet" 
           value="₹8,90,500" 
-          trend="up" 
-          trendValue="3.1%" 
           icon={Wallet} 
         />
         <KpiCard 
           title="Active Users" 
           value="45,231" 
-          trend="up" 
-          trendValue="8.2%" 
           icon={Users} 
         />
         <KpiCard 
           title="Total Merchants" 
           value="1,240" 
-          trend="up" 
-          trendValue="4.1%" 
           icon={Store} 
         />
         <KpiCard 
           title="Daily Transactions" 
           value="8,432" 
-          trend="down" 
-          trendValue="2.4%" 
           icon={Activity} 
         />
       </div>

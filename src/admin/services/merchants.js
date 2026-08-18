@@ -114,6 +114,9 @@ export const adminMerchantService = {
   },
 
   createMerchant: async (data) => {
+    // Generate placeholder IDs to prevent unique constraint violations on empty strings
+    const placeholderAadhaar = `PENDING-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
+    
     const payload = {
       owner_name: data.ownerName,
       contact_email: data.email,
@@ -122,11 +125,26 @@ export const adminMerchantService = {
       dba_name: data.businessName,
       business_type: data.category,
       registered_address: data.address,
+      aadhaar_number: placeholderAadhaar,
+      aadhaar_doc_url: "https://example.com/pending_aadhaar.pdf",
+      shop_license_url: "https://example.com/pending_license.pdf",
       password: data.password,
       confirm_password: data.password
     };
 
-    return gatewayClient.post('/merchant/register', payload);
+    const response = await gatewayClient.post('/merchant/register', payload);
+    const storeId = response.data?.store_id || response.data?.StoreID;
+
+    if (storeId) {
+      if (data.status && data.status !== "Pending KYC") {
+        await adminMerchantService.updateMerchantStatus(storeId, data.status).catch(err => console.warn("Failed to set initial status:", err));
+      }
+      if (data.tier && data.tier !== "Basic") {
+        await adminMerchantService.updateSubscriptionTier(storeId, data.tier).catch(err => console.warn("Failed to set initial tier:", err));
+      }
+    }
+
+    return response;
   },
 
   updateMerchant: async (id, updatedData) => {
@@ -152,6 +170,23 @@ export const adminMerchantService = {
   getMerchantCampaigns: async (storeId) => {
     if (!storeId) return { data: [] };
     return gatewayClient.get(`/admin/merchants/${storeId}/campaigns`);
+  },
+
+  createAdminCampaign: async (storeId, data) => {
+    const payload = {
+      name: data.campaignName,
+      redeem_code: data.redeemCode || "",
+      offer_category: data.offerCategory || "Retail",
+      offer_type: data.offerType || "Discount",
+      reward_value: parseFloat(data.rewardValue) || 0,
+      min_bill_amount: parseFloat(data.minPurchase) || 0,
+      redemption_limit: parseInt(data.redemptionLimit) || 0,
+      target_audience: data.targetAudience || 'All Customers',
+      start_date: data.startDate,
+      end_date: data.endDate,
+      banner_url: data.bannerUrl || ""
+    };
+    return gatewayClient.post(`/admin/merchants/${storeId}/campaigns`, payload);
   },
 
   getAdminCampaigns: async () => {

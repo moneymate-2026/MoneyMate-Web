@@ -36,7 +36,8 @@ export const adminUserService = {
       phone: userData.phone || undefined,
       full_name: userData.full_name,
       password: userData.password,
-      role: userData.role
+      role: userData.role,
+      pin: userData.pin
     });
   },
 

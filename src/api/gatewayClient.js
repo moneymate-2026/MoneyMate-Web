@@ -1,7 +1,7 @@
 // MoneyMate Gateway Client
 // Handles backend connectivity to the Go merchant service on Render
 
-const rawBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const rawBaseUrl = import.meta.env.VITE_API_URL || '';
 const BASE_URL = rawBaseUrl.endsWith('/api/v1') ? rawBaseUrl : `${rawBaseUrl}/api/v1`;
 const ADMIN_BASE_URL = import.meta.env.VITE_ADMIN_API_URL || BASE_URL;
 
@@ -21,14 +21,15 @@ const getOwnerId = (email) => {
 };
 
 const handleRequest = async (url, options = {}) => {
-  const token = localStorage.getItem('merchant_token');
+  const isRouteAdmin = url.startsWith('/admin') || url.startsWith('/auth');
+  const token = isRouteAdmin ? localStorage.getItem('admin_token') : localStorage.getItem('merchant_token');
+  
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     ...options.headers,
   };
 
-  const isRouteAdmin = url.startsWith('/admin') || url.startsWith('/auth');
   const activeBaseUrl = isRouteAdmin ? ADMIN_BASE_URL : BASE_URL;
   const fullUrl = `${activeBaseUrl}${url}`;
   

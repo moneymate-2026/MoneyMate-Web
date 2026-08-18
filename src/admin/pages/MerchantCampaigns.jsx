@@ -8,17 +8,35 @@ import {
   FileText,
   Store,
   Calendar,
-  X
+  X,
+  Plus
 } from "lucide-react";
 import clsx from "clsx";
 
 export default function MerchantCampaigns() {
   const [campaigns, setCampaigns] = useState([]);
   const [merchantsMap, setMerchantsMap] = useState({});
+  const [merchantsList, setMerchantsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [toast, setToast] = useState(null);
+  
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    storeId: "",
+    campaignName: "",
+    redeemCode: "",
+    offerCategory: "Retail",
+    offerType: "Discount",
+    rewardValue: "",
+    minPurchase: "",
+    redemptionLimit: "",
+    targetAudience: "All Customers",
+    startDate: new Date().toISOString().slice(0, 16),
+    endDate: "",
+    bannerUrl: ""
+  });
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -40,6 +58,7 @@ export default function MerchantCampaigns() {
         mMap[m.id] = m.businessName || m.ownerName;
       });
       setMerchantsMap(mMap);
+      setMerchantsList(merchData);
 
       let actualCampaigns = [];
       if (campRes.data && Array.isArray(campRes.data.data)) {
@@ -67,6 +86,29 @@ export default function MerchantCampaigns() {
       fetchData();
     } catch (error) {
       showToast("Error updating campaign status", "error");
+    }
+  };
+
+  const handleCreateSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (!formData.storeId) {
+        showToast("Please select a store", "error");
+        return;
+      }
+      
+      const payload = {
+        ...formData,
+        startDate: new Date(formData.startDate).toISOString(),
+        endDate: new Date(formData.endDate).toISOString(),
+      };
+      
+      await adminMerchantService.createAdminCampaign(formData.storeId, payload);
+      showToast("Campaign created successfully!");
+      setIsCreateModalOpen(false);
+      fetchData();
+    } catch (error) {
+      showToast("Error creating campaign", "error");
     }
   };
 
@@ -114,7 +156,7 @@ export default function MerchantCampaigns() {
         </div>
 
         <div className="flex items-center space-x-3">
-          <div className="flex items-center gap-2 text-xs font-semibold mr-4">
+          <div className="flex items-center gap-2 text-xs font-semibold mr-4 hidden md:flex">
             {["All", "Active", "Closed", "Expired"].map(status => (
               <button
                 key={status}
@@ -136,6 +178,12 @@ export default function MerchantCampaigns() {
             title="Refresh Data"
           >
             <RefreshCcw size={20} className={loading ? "animate-spin" : ""} />
+          </button>
+          <button 
+            onClick={() => setIsCreateModalOpen(true)}
+            className="px-4 py-2 bg-admin-primary text-admin-on-primary rounded-xl font-semibold shadow-md shadow-admin-primary/20 hover:bg-admin-primary-container transition-all flex items-center gap-2 text-sm"
+          >
+            <Plus size={16} /> Create Campaign
           </button>
         </div>
       </div>
@@ -301,6 +349,207 @@ export default function MerchantCampaigns() {
           </table>
         </div>
       </div>
+
+      {/* CREATE CAMPAIGN MODAL */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-admin-surface-container rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden border border-admin-outline-variant animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+            <div className="p-6 border-b border-admin-outline-variant flex justify-between items-center bg-admin-surface-container-high shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-admin-primary/10 text-admin-primary flex items-center justify-center font-bold">
+                  <Plus className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-lg text-admin-on-surface">Create New Campaign/Offer</h3>
+                  <span className="text-xs text-admin-on-surface-variant">Publish a new campaign or offer for a specific store</span>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsCreateModalOpen(false)}
+                className="p-1.5 hover:bg-admin-surface-container-highest rounded-full text-admin-on-surface-variant hover:text-admin-on-surface transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateSubmit} className="p-6 space-y-4 overflow-y-auto flex-1 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                
+                <div className="flex flex-col gap-1 sm:col-span-2">
+                  <label className="font-semibold text-admin-on-surface">Store <span className="text-red-500">*</span></label>
+                  <select 
+                    required 
+                    value={formData.storeId}
+                    onChange={(e) => setFormData({...formData, storeId: e.target.value})}
+                    className="w-full px-4 py-2 bg-admin-surface border border-admin-outline-variant rounded-xl text-admin-on-surface focus:ring-2 focus:ring-admin-primary/50 outline-none"
+                  >
+                    <option value="" disabled>Select a Store</option>
+                    {merchantsList.map(m => (
+                      <option key={m.id} value={m.id}>{m.businessName || m.ownerName}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-admin-on-surface">Campaign Name <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    required 
+                    value={formData.campaignName}
+                    onChange={(e) => setFormData({...formData, campaignName: e.target.value})}
+                    placeholder="e.g. Summer Sale 2026"
+                    className="w-full px-4 py-2 bg-admin-surface border border-admin-outline-variant rounded-xl text-admin-on-surface focus:ring-2 focus:ring-admin-primary/50 outline-none placeholder:text-admin-on-surface-variant/50"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-admin-on-surface">Redeem Code</label>
+                  <input 
+                    type="text" 
+                    value={formData.redeemCode}
+                    onChange={(e) => setFormData({...formData, redeemCode: e.target.value})}
+                    placeholder="e.g. SUMMER50"
+                    className="w-full px-4 py-2 bg-admin-surface border border-admin-outline-variant rounded-xl text-admin-on-surface focus:ring-2 focus:ring-admin-primary/50 outline-none placeholder:text-admin-on-surface-variant/50"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-admin-on-surface">Offer Category</label>
+                  <select 
+                    value={formData.offerCategory}
+                    onChange={(e) => setFormData({...formData, offerCategory: e.target.value})}
+                    className="w-full px-4 py-2 bg-admin-surface border border-admin-outline-variant rounded-xl text-admin-on-surface focus:ring-2 focus:ring-admin-primary/50 outline-none"
+                  >
+                    <option value="Retail">Retail</option>
+                    <option value="Dining">Dining</option>
+                    <option value="Services">Services</option>
+                    <option value="Apparel">Apparel</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-admin-on-surface">Offer Type</label>
+                  <select 
+                    value={formData.offerType}
+                    onChange={(e) => setFormData({...formData, offerType: e.target.value})}
+                    className="w-full px-4 py-2 bg-admin-surface border border-admin-outline-variant rounded-xl text-admin-on-surface focus:ring-2 focus:ring-admin-primary/50 outline-none"
+                  >
+                    <option value="Discount">Discount</option>
+                    <option value="Cashback">Cashback</option>
+                    <option value="BOGO">Buy One Get One</option>
+                    <option value="Flat Rate">Flat Rate</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-admin-on-surface">Reward Value (₹ or %) <span className="text-red-500">*</span></label>
+                  <input 
+                    type="number" 
+                    required 
+                    min="0"
+                    step="0.01"
+                    value={formData.rewardValue}
+                    onChange={(e) => setFormData({...formData, rewardValue: e.target.value})}
+                    placeholder="e.g. 50"
+                    className="w-full px-4 py-2 bg-admin-surface border border-admin-outline-variant rounded-xl text-admin-on-surface focus:ring-2 focus:ring-admin-primary/50 outline-none placeholder:text-admin-on-surface-variant/50"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-admin-on-surface">Min Bill Amount (₹) <span className="text-red-500">*</span></label>
+                  <input 
+                    type="number" 
+                    required 
+                    min="0"
+                    step="0.01"
+                    value={formData.minPurchase}
+                    onChange={(e) => setFormData({...formData, minPurchase: e.target.value})}
+                    placeholder="e.g. 500"
+                    className="w-full px-4 py-2 bg-admin-surface border border-admin-outline-variant rounded-xl text-admin-on-surface focus:ring-2 focus:ring-admin-primary/50 outline-none placeholder:text-admin-on-surface-variant/50"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-admin-on-surface">Redemption Limit</label>
+                  <input 
+                    type="number" 
+                    min="0"
+                    value={formData.redemptionLimit}
+                    onChange={(e) => setFormData({...formData, redemptionLimit: e.target.value})}
+                    placeholder="e.g. 100 (0 for unlimited)"
+                    className="w-full px-4 py-2 bg-admin-surface border border-admin-outline-variant rounded-xl text-admin-on-surface focus:ring-2 focus:ring-admin-primary/50 outline-none placeholder:text-admin-on-surface-variant/50"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-admin-on-surface">Target Audience</label>
+                  <select 
+                    value={formData.targetAudience}
+                    onChange={(e) => setFormData({...formData, targetAudience: e.target.value})}
+                    className="w-full px-4 py-2 bg-admin-surface border border-admin-outline-variant rounded-xl text-admin-on-surface focus:ring-2 focus:ring-admin-primary/50 outline-none"
+                  >
+                    <option value="All Customers">All Customers</option>
+                    <option value="New Customers">New Customers</option>
+                    <option value="Loyal Customers">Loyal Customers</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-admin-on-surface">Start Date <span className="text-red-500">*</span></label>
+                  <input 
+                    type="datetime-local" 
+                    required 
+                    value={formData.startDate}
+                    onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                    className="w-full px-4 py-2 bg-admin-surface border border-admin-outline-variant rounded-xl text-admin-on-surface focus:ring-2 focus:ring-admin-primary/50 outline-none"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-admin-on-surface">End Date <span className="text-red-500">*</span></label>
+                  <input 
+                    type="datetime-local" 
+                    required 
+                    value={formData.endDate}
+                    onChange={(e) => setFormData({...formData, endDate: e.target.value})}
+                    className="w-full px-4 py-2 bg-admin-surface border border-admin-outline-variant rounded-xl text-admin-on-surface focus:ring-2 focus:ring-admin-primary/50 outline-none"
+                  />
+                </div>
+                
+                <div className="flex flex-col gap-1 sm:col-span-2">
+                  <label className="font-semibold text-admin-on-surface">Banner URL</label>
+                  <input 
+                    type="url" 
+                    value={formData.bannerUrl}
+                    onChange={(e) => setFormData({...formData, bannerUrl: e.target.value})}
+                    placeholder="https://example.com/banner.jpg"
+                    className="w-full px-4 py-2 bg-admin-surface border border-admin-outline-variant rounded-xl text-admin-on-surface focus:ring-2 focus:ring-admin-primary/50 outline-none placeholder:text-admin-on-surface-variant/50"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-6 border-t border-admin-outline-variant mt-4">
+                <button 
+                  type="button" 
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="px-6 py-2.5 rounded-xl font-bold text-admin-on-surface hover:bg-admin-surface-container-highest transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-6 py-2.5 bg-admin-primary text-admin-on-primary rounded-xl font-bold shadow-lg shadow-admin-primary/20 hover:bg-admin-primary-container transition-all"
+                >
+                  Publish Campaign
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

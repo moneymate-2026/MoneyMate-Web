@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
   Wallet, 
@@ -16,10 +16,12 @@ import {
   QrCode,
   Crown,
   AlertTriangle,
-  Headphones
+  Headphones,
+  LogOut
 } from "lucide-react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { gatewayClient } from "../../api/gatewayClient";
 
 function cn(...inputs) {
   return twMerge(clsx(inputs));
@@ -64,12 +66,23 @@ const navGroups = [
       { path: "/admin/audit", icon: ShieldAlert, label: "Audit Logs" },
       { path: "/admin/rbac", icon: Key, label: "RBAC" },
       { path: "/admin/config", icon: Settings2, label: "Web Config" },
-      { path: "/admin/settings", icon: Settings, label: "Settings" },
     ]
   }
 ];
 
 export default function Sidebar() {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await gatewayClient.post('/auth/logout');
+    } catch (e) {
+      console.warn("Logout API failed, continuing local logout", e);
+    }
+    localStorage.removeItem('admin_token');
+    navigate('/admin/login');
+  };
+
   return (
     <div className="w-[280px] flex-shrink-0 bg-admin-surface-container border-r border-admin-outline-variant h-screen flex flex-col overflow-hidden shadow-[4px_0_24px_rgba(0,0,0,0.2)]">
       <div className="h-[72px] flex items-center px-6 border-b border-admin-outline-variant shrink-0 gap-3">
@@ -119,13 +132,21 @@ export default function Sidebar() {
       
       <div className="p-4 border-t border-admin-outline-variant bg-admin-surface-container-low mt-auto">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-admin-primary/20 text-admin-primary flex items-center justify-center font-bold border border-admin-primary/30">
-            AD
+          <div className="flex items-center gap-3 flex-1 overflow-hidden">
+            <div className="w-10 h-10 rounded-full bg-admin-primary/20 text-admin-primary flex items-center justify-center font-bold border border-admin-primary/30 shrink-0">
+              AD
+            </div>
+            <div className="flex flex-col overflow-hidden justify-center">
+              <span className="text-sm font-semibold text-admin-on-surface truncate">Administrator</span>
+            </div>
           </div>
-          <div className="flex flex-col overflow-hidden">
-            <span className="text-sm font-semibold text-admin-on-surface truncate">Admin User</span>
-            <span className="text-xs text-admin-on-surface-variant truncate">admin@qrrewards.com</span>
-          </div>
+          <button 
+            onClick={handleLogout}
+            className="p-2 text-admin-on-surface-variant hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors shrink-0"
+            title="Logout"
+          >
+            <LogOut className="w-5 h-5" />
+          </button>
         </div>
       </div>
     </div>

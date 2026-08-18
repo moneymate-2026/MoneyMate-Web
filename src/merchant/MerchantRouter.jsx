@@ -14,12 +14,40 @@ import KYCStatus from './pages/KYCStatus';
 import Wallet from './pages/Wallet';
 
 export default function MerchantRouter() {
-  const [path, setPath] = useState(window.location.pathname);
+  const [path, setPath] = useState(() => {
+    const initialPath = window.location.pathname;
+    const isAuthenticated = !!localStorage.getItem('merchant_token');
+    const publicRoutes = ['/merchant/welcome', '/merchant/register', '/merchant/login', '/merchant/verification-pending'];
+    const isPublicPath = publicRoutes.includes(initialPath) || initialPath === '/merchant' || initialPath === '/';
+    
+    if (!isAuthenticated && !isPublicPath) {
+      window.history.replaceState(null, '', '/merchant/login');
+      return '/merchant/login';
+    }
+    if (isAuthenticated && isPublicPath) {
+      window.history.replaceState(null, '', '/merchant/dashboard');
+      return '/merchant/dashboard';
+    }
+    return initialPath;
+  });
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
     const handlePopState = () => {
-      setPath(window.location.pathname);
+      const newPath = window.location.pathname;
+      const isAuthenticated = !!localStorage.getItem('merchant_token');
+      const publicRoutes = ['/merchant/welcome', '/merchant/register', '/merchant/login', '/merchant/verification-pending'];
+      const isPublicPath = publicRoutes.includes(newPath) || newPath === '/merchant' || newPath === '/';
+
+      let finalPath = newPath;
+      if (!isAuthenticated && !isPublicPath) {
+        finalPath = '/merchant/login';
+        window.history.replaceState(null, '', finalPath);
+      } else if (isAuthenticated && isPublicPath) {
+        finalPath = '/merchant/dashboard';
+        window.history.replaceState(null, '', finalPath);
+      }
+      setPath(finalPath);
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -34,9 +62,26 @@ export default function MerchantRouter() {
     }
   }, [toast]);
 
-  const navigate = (newPath) => {
-    window.history.pushState(null, '', newPath);
-    setPath(newPath);
+  const navigate = (newPath, replace = false) => {
+    const isAuthenticated = !!localStorage.getItem('merchant_token');
+    const publicRoutes = ['/merchant/welcome', '/merchant/register', '/merchant/login', '/merchant/verification-pending'];
+    const isPublicPath = publicRoutes.includes(newPath) || newPath === '/merchant' || newPath === '/';
+
+    let finalPath = newPath;
+    if (!isAuthenticated && !isPublicPath) {
+      finalPath = '/merchant/login';
+      replace = true;
+    } else if (isAuthenticated && isPublicPath) {
+      finalPath = '/merchant/dashboard';
+      replace = true;
+    }
+
+    if (replace) {
+      window.history.replaceState(null, '', finalPath);
+    } else {
+      window.history.pushState(null, '', finalPath);
+    }
+    setPath(finalPath);
   };
 
   const showToast = (message, type = 'success') => {

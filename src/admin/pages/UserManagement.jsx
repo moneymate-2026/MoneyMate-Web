@@ -11,7 +11,7 @@ export default function UserManagement() {
   const [actionLoading, setActionLoading] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('create'); // 'create' or 'edit'
-  const [modalData, setModalData] = useState({ id: '', email: '', phone: '', full_name: '', password: '', role: 'user' });
+  const [modalData, setModalData] = useState({ id: '', email: '', phone: '', full_name: '', password: '', role: 'user', pin: '' });
   const [modalLoading, setModalLoading] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -78,10 +78,11 @@ export default function UserManagement() {
         phone: user.phone || '',
         full_name: user.name || '',
         password: '', // Empty password for edit
-        role: user.role?.toLowerCase() || 'user'
+        role: user.role?.toLowerCase() || 'user',
+        pin: ''
       });
     } else {
-      setModalData({ id: '', email: '', phone: '', full_name: '', password: '', role: 'user' });
+      setModalData({ id: '', email: '', phone: '', full_name: '', password: '', role: 'user', pin: '' });
     }
     setIsModalOpen(true);
   };
@@ -331,6 +332,23 @@ export default function UserManagement() {
                   minLength={8}
                 />
               </div>
+
+              {modalMode === 'create' && (
+                <div>
+                  <label className="block text-sm font-semibold text-admin-on-surface mb-1">PIN (6 digits)</label>
+                  <input 
+                    type="text" 
+                    required={modalMode === 'create'}
+                    value={modalData.pin}
+                    onChange={(e) => setModalData({...modalData, pin: e.target.value.replace(/\D/g, '').slice(0, 6)})}
+                    className="w-full px-3 py-2 bg-admin-surface-container-lowest border border-admin-outline-variant rounded-lg text-admin-on-surface focus:ring-2 focus:ring-admin-primary/40 focus:border-admin-primary outline-none transition-all"
+                    placeholder="123456"
+                    minLength={6}
+                    maxLength={6}
+                    pattern="\d{6}"
+                  />
+                </div>
+              )}
               
               <div className="pt-4 flex justify-end gap-3">
                 <button 

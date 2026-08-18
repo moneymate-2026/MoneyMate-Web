@@ -29,7 +29,8 @@ import {
   Download,
   Building2,
   Save,
-  AlertTriangle
+  AlertTriangle,
+  RefreshCw
 } from "lucide-react";
 
 export default function MerchantManagement() {
@@ -508,6 +509,16 @@ export default function MerchantManagement() {
           </button>
           
           <button 
+            onClick={fetchMerchants}
+            className="px-3.5 py-2 bg-admin-surface-container-high border border-admin-outline-variant text-admin-on-surface rounded-xl font-semibold shadow-sm hover:bg-admin-surface-container-highest transition-all flex items-center gap-2 text-xs sm:text-sm"
+            title="Refresh Merchant List"
+            disabled={loading}
+          >
+            <RefreshCw className={`w-4 h-4 shrink-0 text-admin-on-surface-variant ${loading ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
+
+          <button 
             onClick={handleExportPDF}
             className="px-3.5 py-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-xl font-semibold shadow-sm hover:bg-indigo-500/20 transition-all flex items-center gap-2 text-xs sm:text-sm"
           >
@@ -529,22 +540,16 @@ export default function MerchantManagement() {
         <KpiCard 
           title="Total Registered Stores" 
           value={stats.totalMerchants || merchants.length} 
-          trend="up" 
-          trendValue="+12% this mo" 
           icon={Store} 
         />
         <KpiCard 
           title="Active Storefronts" 
           value={stats.activeStores || merchants.filter(m => m.status === 'Active').length} 
-          trend="up" 
-          trendValue="94.2% online" 
           icon={CheckCircle2} 
         />
         <KpiCard 
           title="Pending KYC Reviews" 
           value={stats.pendingKyc || merchants.filter(m => m.kycStatus === 'Pending').length} 
-          trend={merchants.filter(m => m.kycStatus === 'Pending').length > 0 ? "down" : "up"} 
-          trendValue="Action req." 
           icon={UserCheck} 
         />
       </div>
@@ -671,7 +676,7 @@ export default function MerchantManagement() {
                     placeholder="e.g. Acme Supermarket"
                     value={formData.businessName}
                     onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
+                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold text-admin-on-surface bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
                   />
                 </div>
                 <div>
@@ -682,7 +687,7 @@ export default function MerchantManagement() {
                     placeholder="e.g. John Doe"
                     value={formData.ownerName}
                     onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
+                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold text-admin-on-surface bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
                   />
                 </div>
               </div>
@@ -696,7 +701,7 @@ export default function MerchantManagement() {
                     placeholder="store@acme.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
+                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold text-admin-on-surface bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
                   />
                 </div>
                 <div>
@@ -706,7 +711,7 @@ export default function MerchantManagement() {
                     placeholder="+1 (555) 123-4567"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
+                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold text-admin-on-surface bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
                   />
                 </div>
               </div>
@@ -717,7 +722,7 @@ export default function MerchantManagement() {
                   <select 
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-admin-outline-variant text-xs font-bold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-admin-outline-variant text-xs font-bold text-admin-on-surface bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
                   >
                     <option value="Retail">Retail</option>
                     <option value="F&B">F&B</option>
@@ -730,7 +735,7 @@ export default function MerchantManagement() {
                   <select 
                     value={formData.tier}
                     onChange={(e) => setFormData({ ...formData, tier: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-admin-outline-variant text-xs font-bold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-admin-outline-variant text-xs font-bold text-admin-on-surface bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
                   >
                     <option value="Basic">Basic ($0)</option>
                     <option value="Premium">Premium ($29)</option>
@@ -742,7 +747,7 @@ export default function MerchantManagement() {
                   <select 
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-admin-outline-variant text-xs font-bold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-admin-outline-variant text-xs font-bold text-admin-on-surface bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
                   >
                     <option value="Active">Active (Verified)</option>
                     <option value="Pending KYC">Pending KYC</option>
@@ -759,7 +764,7 @@ export default function MerchantManagement() {
                     placeholder="••••••••"
                     value={formData.password || ""}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
+                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold text-admin-on-surface bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
                   />
                 </div>
                 <div>
@@ -769,7 +774,7 @@ export default function MerchantManagement() {
                     placeholder="e.g. 742 Evergreen Terrace, Suite 100, NY"
                     value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
+                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold text-admin-on-surface bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
                   />
                 </div>
               </div>
@@ -825,7 +830,7 @@ export default function MerchantManagement() {
                     required
                     value={formData.businessName}
                     onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
+                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold text-admin-on-surface bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
                   />
                 </div>
                 <div>
@@ -835,7 +840,7 @@ export default function MerchantManagement() {
                     required
                     value={formData.ownerName}
                     onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
+                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold text-admin-on-surface bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
                   />
                 </div>
               </div>
@@ -848,7 +853,7 @@ export default function MerchantManagement() {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
+                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold text-admin-on-surface bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
                   />
                 </div>
                 <div>
@@ -857,7 +862,7 @@ export default function MerchantManagement() {
                     type="text" 
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
+                    className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold text-admin-on-surface bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
                   />
                 </div>
               </div>
@@ -868,7 +873,7 @@ export default function MerchantManagement() {
                   <select 
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-admin-outline-variant text-xs font-bold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-admin-outline-variant text-xs font-bold text-admin-on-surface bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
                   >
                     <option value="Retail">Retail</option>
                     <option value="F&B">F&B</option>
@@ -881,7 +886,7 @@ export default function MerchantManagement() {
                   <select 
                     value={formData.tier}
                     onChange={(e) => setFormData({ ...formData, tier: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-admin-outline-variant text-xs font-bold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-admin-outline-variant text-xs font-bold text-admin-on-surface bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
                   >
                     <option value="Basic">Basic ($0)</option>
                     <option value="Premium">Premium ($29)</option>
@@ -893,7 +898,7 @@ export default function MerchantManagement() {
                   <select 
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-admin-outline-variant text-xs font-bold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-admin-outline-variant text-xs font-bold text-admin-on-surface bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
                   >
                     <option value="Active">Active</option>
                     <option value="Pending KYC">Pending KYC</option>
@@ -908,7 +913,7 @@ export default function MerchantManagement() {
                   type="text" 
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
+                  className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold text-admin-on-surface bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
                 />
               </div>
 

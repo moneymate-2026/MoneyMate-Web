@@ -134,3 +134,13 @@ body {
 .delay-300 { animation-delay: 300ms; }
 .delay-400 { animation-delay: 400ms; }
 .delay-500 { animation-delay: 500ms; }
+
+/* Fix autofill styles for admin dark inputs */
+input.bg-admin-surface-container-lowest:-webkit-autofill,
+input.bg-admin-surface-container-lowest:-webkit-autofill:hover, 
+input.bg-admin-surface-container-lowest:-webkit-autofill:focus, 
+input.bg-admin-surface-container-lowest:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #000000 inset !important;
+    -webkit-text-fill-color: #f1f3f9 !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
