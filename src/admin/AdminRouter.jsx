@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import AdminLayout from "./AdminLayout";
+import { AdminProvider } from "./components/AdminContext";
 import Overview from "./pages/Overview";
 import Wallets from "./pages/Wallets";
 import UserManagement from "./pages/UserManagement";
@@ -25,7 +26,7 @@ export default function AdminRouter() {
     <Routes>
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route element={<AdminProtectedRoute />}>
-        <Route path="/admin" element={<AdminLayout />}>
+        <Route path="/admin" element={<AdminProvider><AdminLayout /></AdminProvider>}>
           <Route index element={<Overview />} />
           <Route path="wallets" element={<Wallets />} />
           <Route path="users" element={<UserManagement />} />

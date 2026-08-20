@@ -8,15 +8,24 @@ import {
   RefreshCcw,
   Calendar,
   XCircle,
-  FileText
+  FileText,
+  Plus
 } from "lucide-react";
 
 export default function MerchantPlans() {
   const [subscriptions, setSubscriptions] = useState([]);
   const [plans, setPlans] = useState([]);
+  const [merchants, setMerchants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [toast, setToast] = useState(null);
+  
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    storeId: '',
+    planCode: ''
+  });
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -26,12 +35,14 @@ export default function MerchantPlans() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [plansRes, subsRes] = await Promise.all([
+      const [plansRes, subsRes, merchantsRes] = await Promise.all([
         adminMerchantService.getSubscriptionPlans(),
-        adminMerchantService.getAdminSubscriptions()
+        adminMerchantService.getAdminSubscriptions(),
+        adminMerchantService.getMerchants()
       ]);
 
       setPlans(plansRes.data || []);
+      setMerchants(merchantsRes.data || []);
       
       const subsData = subsRes.data?.data || subsRes.data || [];
       if (Array.isArray(subsData)) {
@@ -48,9 +59,31 @@ export default function MerchantPlans() {
     fetchData();
   }, []);
 
-  const handleCancelSubscription = (subId) => {
-    showToast(`Cancelled subscription ${subId}`, "success");
-    // Optionally call backend to cancel
+  const handleCancelSubscription = async (storeId) => {
+    try {
+      await adminMerchantService.updateSubscriptionTier(storeId, 'basic');
+      showToast(`Subscription cancelled successfully!`);
+      fetchData();
+    } catch (error) {
+      showToast("Failed to cancel subscription", "error");
+    }
+  };
+
+  const handleCreateSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.storeId || !formData.planCode) {
+      showToast("Please fill in required fields", "error");
+      return;
+    }
+    try {
+      await adminMerchantService.updateSubscriptionTier(formData.storeId, formData.planCode);
+      showToast("Subscription created successfully!");
+      setIsModalOpen(false);
+      setFormData({ storeId: '', planCode: '' });
+      fetchData();
+    } catch (error) {
+      showToast("Failed to create subscription", "error");
+    }
   };
 
   // Helper to find price for a plan code
@@ -81,7 +114,11 @@ export default function MerchantPlans() {
     const storeId = (sub.store_id || sub.StoreID || '').toLowerCase();
     const planCode = (sub.plan_code || sub.PlanCode || '').toLowerCase();
     const status = (sub.status || sub.Status || '').toLowerCase();
-    return storeId.includes(q) || planCode.includes(q) || status.includes(q);
+    
+    const merchant = merchants.find(m => m.id === (sub.store_id || sub.StoreID));
+    const businessName = merchant ? merchant.businessName.toLowerCase() : '';
+    
+    return storeId.includes(q) || planCode.includes(q) || status.includes(q) || businessName.includes(q);
   });
 
   return (
@@ -98,13 +135,21 @@ export default function MerchantPlans() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h2 className="text-[26px] font-extrabold text-admin-on-surface tracking-tight">Merchant Subscriptions</h2>
-        <button 
-          onClick={fetchData}
-          className="flex items-center justify-center p-2 text-admin-on-surface-variant hover:text-admin-on-surface hover:bg-admin-surface-container-high rounded-lg transition-colors"
-          title="Refresh Data"
-        >
-          <RefreshCcw size={20} className={loading ? "animate-spin" : ""} />
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="px-4 py-2 bg-admin-primary text-admin-on-primary rounded-xl font-semibold shadow-md shadow-admin-primary/20 hover:bg-admin-primary-container transition-all flex items-center gap-2 text-xs sm:text-sm"
+          >
+            <Plus className="w-4 h-4 shrink-0" /> Create Subscription
+          </button>
+          <button 
+            onClick={fetchData}
+            className="flex items-center justify-center p-2 text-admin-on-surface-variant hover:text-admin-on-surface hover:bg-admin-surface-container-high rounded-lg transition-colors"
+            title="Refresh Data"
+          >
+            <RefreshCcw size={20} className={loading ? "animate-spin" : ""} />
+          </button>
+        </div>
       </div>
 
       {/* KPI Stats */}
@@ -213,8 +258,13 @@ export default function MerchantPlans() {
                         </span>
                       </td>
                       <td className="p-4 align-top">
-                        <div className="text-sm font-mono text-admin-on-surface-variant" title={storeId}>
-                          {storeId ? `${storeId.substring(0, 8)}...` : 'Unknown'}
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-admin-on-surface">
+                            {merchants.find(m => m.id === storeId)?.businessName || "Unknown Merchant"}
+                          </span>
+                          <span className="text-xs font-mono text-admin-on-surface-variant" title={storeId}>
+                            {storeId ? `${storeId.substring(0, 8)}...` : 'Unknown'}
+                          </span>
                         </div>
                       </td>
                       <td className="p-4 align-top">
@@ -232,9 +282,9 @@ export default function MerchantPlans() {
                         </span>
                       </td>
                       <td className="p-4 align-top">
-                        {status === 'active' && (
+                        {status === 'active' && planCode !== 'basic' && (
                           <button 
-                            onClick={() => handleCancelSubscription(id)}
+                            onClick={() => handleCancelSubscription(storeId)}
                             className="flex items-center space-x-1 text-admin-error hover:text-red-400 bg-admin-error/10 hover:bg-admin-error/20 px-2 py-1 rounded text-sm transition-colors"
                             title="Cancel Subscription"
                           >
@@ -251,6 +301,77 @@ export default function MerchantPlans() {
           </table>
         </div>
       </div>
+
+      {/* CREATE SUBSCRIPTION MODAL */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-admin-surface-container rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden border border-admin-outline-variant animate-in zoom-in-95 duration-200 flex flex-col">
+            <div className="p-6 border-b border-admin-outline-variant flex justify-between items-center bg-admin-surface-container-high shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-admin-primary/10 text-admin-primary flex items-center justify-center font-bold">
+                  <Plus className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-lg text-admin-on-surface">Create New Subscription</h3>
+                  <span className="text-xs text-admin-on-surface-variant">Select an existing merchant and assign a plan</span>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="p-1.5 hover:bg-admin-surface-container-highest rounded-full text-admin-on-surface-variant hover:text-admin-on-surface transition-colors"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="text-xs font-bold text-admin-on-surface-variant block mb-1">Select Merchant *</label>
+                <select 
+                  required
+                  value={formData.storeId}
+                  onChange={(e) => setFormData({ ...formData, storeId: e.target.value })}
+                  className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold text-admin-on-surface bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
+                >
+                  <option value="">-- Select Merchant --</option>
+                  {merchants.map(m => (
+                    <option key={m.id} value={m.id}>{m.businessName} ({m.displayId})</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-admin-on-surface-variant block mb-1">Select Plan *</label>
+                <select 
+                  required
+                  value={formData.planCode}
+                  onChange={(e) => setFormData({ ...formData, planCode: e.target.value })}
+                  className="w-full px-3.5 py-2 rounded-xl border border-admin-outline-variant text-sm font-semibold text-admin-on-surface bg-admin-surface-container-lowest focus:ring-2 focus:ring-admin-primary/20 outline-none"
+                >
+                  <option value="">-- Select Plan --</option>
+                  {plans.map(p => (
+                    <option key={p.plan_code} value={p.plan_code}>{p.name} - {p.formatted_price || `$${p.price}`}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="pt-4 border-t flex justify-end gap-3 shrink-0">
+                <button 
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 border border-admin-outline-variant text-admin-on-surface font-semibold text-xs rounded-xl hover:bg-admin-surface-container-highest transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="px-5 py-2 bg-admin-primary hover:bg-admin-primary-container text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5"
+                >
+                  <Plus className="w-4 h-4" /> Create Subscription
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

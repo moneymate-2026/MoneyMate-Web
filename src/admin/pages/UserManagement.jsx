@@ -3,6 +3,7 @@ import DataTable from "../components/DataTable";
 import StatusBadge from "../components/StatusBadge";
 import { adminUserService } from "../services/users";
 import { Search, Plus, Filter, MoreVertical, ShieldAlert, CheckCircle2, Ban, Trash2, Edit, X } from "lucide-react";
+import { useAdmin } from "../components/AdminContext";
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -14,6 +15,8 @@ export default function UserManagement() {
   const [modalData, setModalData] = useState({ id: '', email: '', phone: '', full_name: '', password: '', role: 'user', pin: '' });
   const [modalLoading, setModalLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  
+  const { hasPermission } = useAdmin();
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -113,7 +116,15 @@ export default function UserManagement() {
   );
 
   const columns = [
-    { header: "User ID", accessor: "id" },
+    { 
+      header: "VPA Address", 
+      accessor: "handle",
+      render: (row) => (
+        <span className="font-mono text-sm text-admin-on-surface-variant">
+          {row.handle || 'No VPA assigned'}
+        </span>
+      )
+    },
     { 
       header: "User", 
       render: (row) => (
@@ -177,13 +188,15 @@ export default function UserManagement() {
                 <Edit className="w-3.5 h-3.5" />
                 Edit
               </button>
-              <button 
-                onClick={() => handleDelete(row.id)}
-                className="px-2.5 py-1.5 text-[13px] font-medium rounded-lg text-admin-on-surface-variant hover:text-admin-error hover:bg-admin-error/10 transition-colors flex items-center gap-1.5"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                Delete
-              </button>
+              {hasPermission('users', 'delete') && (
+                <button 
+                  onClick={() => handleDelete(row.id)}
+                  className="px-2.5 py-1.5 text-[13px] font-medium rounded-lg text-admin-on-surface-variant hover:text-admin-error hover:bg-admin-error/10 transition-colors flex items-center gap-1.5"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Delete
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -203,12 +216,14 @@ export default function UserManagement() {
           <button className="px-4 py-2 bg-admin-surface-container border border-admin-outline-variant text-admin-on-surface rounded-lg font-semibold shadow-sm hover:bg-admin-surface-container-low transition-colors flex items-center gap-2">
             <Filter className="w-4 h-4" /> Filters
           </button>
-          <button 
-            onClick={() => openModal('create')}
-            className="px-4 py-2 bg-admin-primary text-admin-on-primary rounded-lg font-semibold shadow-md shadow-admin-primary/20 hover:bg-admin-primary-container transition-all flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" /> Add User
-          </button>
+          {hasPermission('users', 'create') && (
+            <button 
+              onClick={() => openModal('create')}
+              className="px-4 py-2 bg-admin-primary text-admin-on-primary rounded-lg font-semibold shadow-md shadow-admin-primary/20 hover:bg-admin-primary-container transition-all flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" /> Add User
+            </button>
+          )}
         </div>
       </div>
 

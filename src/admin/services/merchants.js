@@ -88,7 +88,8 @@ export const adminMerchantService = {
 
   updateMerchantStatus: async (id, status) => {
     let apiStatus = status.toLowerCase();
-    if (apiStatus === "active") apiStatus = "verified";
+    if (apiStatus === "active") apiStatus = "active";
+    if (apiStatus === "blocked") apiStatus = "suspended";
     return gatewayClient.put(`/admin/merchants/${id}/status`, { status: apiStatus });
   },
 
@@ -106,9 +107,11 @@ export const adminMerchantService = {
 
   updateSubscriptionTier: async (id, tier) => {
     // Determine plan code based on tier name
-    let planCode = "basic";
-    if (tier.toLowerCase() === "premium") planCode = "premium";
-    if (tier.toLowerCase() === "enterprise") planCode = "enterprise";
+    let planCode = "essential";
+    const t = tier.toLowerCase();
+    if (t === "premium" || t === "growth") planCode = "growth";
+    if (t === "enterprise") planCode = "enterprise";
+    if (t === "basic" || t === "essential") planCode = "essential";
     
     return gatewayClient.put(`/admin/merchants/${id}/subscription`, { plan_code: planCode });
   },
@@ -187,6 +190,23 @@ export const adminMerchantService = {
       banner_url: data.bannerUrl || ""
     };
     return gatewayClient.post(`/admin/merchants/${storeId}/campaigns`, payload);
+  },
+
+  updateAdminCampaign: async (campaignId, data) => {
+    const payload = {
+      name: data.campaignName,
+      redeem_code: data.redeemCode || "",
+      offer_category: data.offerCategory || "Retail",
+      offer_type: data.offerType || "Discount",
+      reward_value: parseFloat(data.rewardValue) || 0,
+      min_bill_amount: parseFloat(data.minPurchase) || 0,
+      redemption_limit: parseInt(data.redemptionLimit) || 0,
+      target_audience: data.targetAudience || 'All Customers',
+      start_date: data.startDate,
+      end_date: data.endDate,
+      banner_url: data.bannerUrl || ""
+    };
+    return gatewayClient.put(`/admin/campaigns/${campaignId}`, payload);
   },
 
   getAdminCampaigns: async () => {

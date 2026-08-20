@@ -4,6 +4,7 @@ import { Search, RefreshCw, History, ShieldAlert, CheckCircle2 } from "lucide-re
 
 // Data will be fetched from API
 
+import { gatewayClient } from "../../api/gatewayClient";
 
 export default function AuditLogs() {
   const [logs, setLogs] = useState([]);
@@ -13,11 +14,18 @@ export default function AuditLogs() {
 
   const fetchLogs = async () => {
     setLoading(true);
-    // Simulate API fetch or connect to real backend later
     try {
-      // const response = await api.get('/audit-logs');
-      // setLogs(response.data);
-      setLogs([]); // currently empty
+      const response = await gatewayClient.get('/admin/audit');
+      const fetchedLogs = (response.data.data || []).map(log => ({
+        id: log.id,
+        date: log.created_at,
+        personName: log.admin_name,
+        personRole: log.admin_role,
+        module: log.module,
+        action: log.action,
+        details: log.changes ? JSON.stringify(log.changes) : "No details"
+      }));
+      setLogs(fetchedLogs);
     } catch (error) {
       console.error("Failed to fetch logs", error);
     } finally {
@@ -25,6 +33,7 @@ export default function AuditLogs() {
       setIsRefreshing(false);
     }
   };
+
 
   useEffect(() => {
     fetchLogs();

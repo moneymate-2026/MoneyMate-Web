@@ -55,6 +55,7 @@ export default function RBAC() {
     name: "",
     email: "",
     password: "",
+    pin: "",
     permissions: {}
   });
 
@@ -118,6 +119,7 @@ export default function RBAC() {
         name: role.name,
         email: staffMember.email,
         password: "",
+        pin: "",
         permissions: JSON.parse(JSON.stringify(role.permissions)) // Deep copy
       });
     } else {
@@ -130,6 +132,7 @@ export default function RBAC() {
         name: "",
         email: "",
         password: "",
+        pin: "",
         permissions: initialPermissions
       });
     }
@@ -153,6 +156,38 @@ export default function RBAC() {
     });
   };
 
+  const handleAllowAll = () => {
+    const isSystem = roles.find(r => r.id === formData.id)?.isSystem;
+    if (isSystem) return;
+
+    setFormData(prev => {
+      const newPerms = {};
+      permissionDefinitions.forEach(perm => {
+        newPerms[perm.id] = [...perm.actions];
+      });
+      return {
+        ...prev,
+        permissions: newPerms
+      };
+    });
+  };
+
+  const handleClearAll = () => {
+    const isSystem = roles.find(r => r.id === formData.id)?.isSystem;
+    if (isSystem) return;
+
+    setFormData(prev => {
+      const newPerms = {};
+      permissionDefinitions.forEach(perm => {
+        newPerms[perm.id] = [];
+      });
+      return {
+        ...prev,
+        permissions: newPerms
+      };
+    });
+  };
+
   const handleFormSave = async (e) => {
     e.preventDefault();
     if (processing) return;
@@ -162,7 +197,7 @@ export default function RBAC() {
       let roleId = formData.id;
       const isNewRole = !roleId;
       
-      const finalRoleName = isNewRole ? (`Admin Role - ${formData.email.split('@')[0]}_${Math.random().toString(36).substr(2, 4)}`) : formData.name;
+      const finalRoleName = formData.name?.trim() || (`Admin Role - ${formData.email.split('@')[0]}_${Math.random().toString(36).substr(2, 4)}`);
 
       // 1. Create or Update Role
       if (isNewRole) {
@@ -211,7 +246,8 @@ export default function RBAC() {
             email: formData.email,
             password: formData.password,
             full_name: finalRoleName, // use role name as the user's name for simplicity
-            role: finalRoleName // the name of the role we just created
+            role: finalRoleName, // the name of the role we just created
+            pin: formData.pin || "123456"
           });
         } catch (err) {
           console.error("Failed to create admin credentials", err);
@@ -357,6 +393,10 @@ export default function RBAC() {
   // Form View (Create/Edit)
   const isSystemRole = roles.find(r => r.id === formData.id)?.isSystem;
 
+  const areAllPermsSelected = permissionDefinitions.every(perm => 
+    (formData.permissions[perm.id] || []).length === perm.actions.length
+  );
+
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-right-8 duration-300">
       <div className="flex items-center gap-4">
@@ -377,7 +417,25 @@ export default function RBAC() {
       <form onSubmit={handleFormSave} className="bg-admin-surface-container border border-admin-outline-variant rounded-xl shadow-sm overflow-hidden flex flex-col">
         <div className="p-6 border-b border-admin-outline-variant">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {!formData.id ? (
+            <div>
+              <label className="block text-sm font-semibold text-admin-on-surface mb-2">Role Name</label>
+              <input 
+                type="text" 
+                value={formData.name}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                disabled={isSystemRole || processing}
+                required
+                className="w-full px-4 py-2.5 bg-admin-surface-container-lowest border border-admin-outline-variant rounded-lg text-admin-on-surface focus:ring-2 focus:ring-admin-primary/40 focus:border-admin-primary outline-none transition-all disabled:opacity-50"
+                placeholder={!formData.id ? "Custom Role Name" : ""}
+              />
+              {isSystemRole && (
+                <p className="text-xs text-amber-500 mt-2 flex items-center gap-1 font-medium">
+                  <ShieldAlert className="w-3.5 h-3.5" /> System roles cannot be renamed.
+                </p>
+              )}
+            </div>
+
+            {!formData.id && (
               <>
                 <div>
                   <label className="block text-sm font-semibold text-admin-on-surface mb-2">Admin Login Email</label>
@@ -405,34 +463,57 @@ export default function RBAC() {
                   />
                   <p className="text-xs text-admin-on-surface-variant mt-1">Min. 8 characters</p>
                 </div>
+                <div>
+                  <label className="block text-sm font-semibold text-admin-on-surface mb-2">Admin Login PIN</label>
+                  <input 
+                    type="text" 
+                    required={!formData.id}
+                    maxLength={6}
+                    minLength={6}
+                    pattern="\d{6}"
+                    value={formData.pin || ""}
+                    onChange={(e) => setFormData({...formData, pin: e.target.value.replace(/\D/g, '')})}
+                    disabled={processing}
+                    className="w-full px-4 py-2.5 bg-admin-surface-container-lowest border border-admin-outline-variant rounded-lg text-admin-on-surface focus:ring-2 focus:ring-admin-primary/40 focus:border-admin-primary outline-none transition-all disabled:opacity-50"
+                    placeholder="123456"
+                  />
+                  <p className="text-xs text-admin-on-surface-variant mt-1">6-digit numeric PIN</p>
+                </div>
               </>
-            ) : (
-              <div>
-                <label className="block text-sm font-semibold text-admin-on-surface mb-2">Role Name</label>
-                <input 
-                  type="text" 
-                  value={formData.name}
-                  disabled
-                  className="w-full px-4 py-2.5 bg-admin-surface-container-lowest border border-admin-outline-variant rounded-lg text-admin-on-surface focus:ring-2 focus:ring-admin-primary/40 focus:border-admin-primary outline-none transition-all disabled:opacity-50"
-                />
-                {isSystemRole && (
-                  <p className="text-xs text-amber-500 mt-2 flex items-center gap-1 font-medium">
-                    <ShieldAlert className="w-3.5 h-3.5" /> System roles cannot be renamed.
-                  </p>
-                )}
-              </div>
             )}
           </div>
         </div>
 
         <div className="p-6 bg-admin-surface-container-lowest">
-          <h4 className="text-sm font-bold text-admin-on-surface-variant uppercase tracking-wider mb-6">
-            Module CRUD Permissions
-          </h4>
+          <div className="flex items-center justify-between mb-6">
+            <h4 className="text-sm font-bold text-admin-on-surface-variant uppercase tracking-wider">
+              Module CRUD Permissions
+            </h4>
+            {!isSystemRole && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleAllowAll}
+                  disabled={processing}
+                  className="text-xs font-bold text-admin-primary hover:text-admin-primary-container px-3 py-1 bg-admin-primary/10 hover:bg-admin-primary/20 rounded-lg transition-colors"
+                >
+                  Allow All
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClearAll}
+                  disabled={processing}
+                  className="text-xs font-bold text-red-500 hover:text-red-600 px-3 py-1 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-colors"
+                >
+                  Clear All
+                </button>
+              </div>
+            )}
+          </div>
           
           <div className="space-y-4">
             {permissionDefinitions.map((perm) => {
-              const activePerms = formData.permissions[perm.id] || [];
+              const activePerms = isSystemRole ? perm.actions : (formData.permissions[perm.id] || []);
               const Icon = perm.icon;
               return (
                 <div 

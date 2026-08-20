@@ -1,6 +1,9 @@
+import { useState, useEffect } from "react";
 import KpiCard from "../components/KpiCard";
 import DataTable from "../components/DataTable";
 import StatusBadge from "../components/StatusBadge";
+import { adminUserService } from "../services/users";
+import { adminMerchantService } from "../services/merchants";
 import { Users, Store, Wallet, Activity, ArrowUpRight, Gift, Banknote, CreditCard } from "lucide-react";
 import {
   AreaChart,
@@ -31,6 +34,35 @@ const recentTransactions = [
 ];
 
 export default function Overview() {
+  const [stats, setStats] = useState({
+    users: 0,
+    merchants: 0,
+    pendingKYC: 0
+  });
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const [usersRes, merchantsRes] = await Promise.all([
+          adminUserService.getUsers(),
+          adminMerchantService.getMerchants()
+        ]);
+        
+        const pendingCount = merchantsRes.data.filter(m => m.kycStatus === "Pending").length;
+        
+        setStats({
+          users: usersRes.total || usersRes.data?.length || 0,
+          merchants: merchantsRes.total || merchantsRes.data?.length || 0,
+          pendingKYC: pendingCount
+        });
+      } catch (error) {
+        console.error("Failed to fetch dashboard overview data:", error);
+      }
+    };
+    
+    fetchDashboardData();
+  }, []);
+
   const columns = [
     { header: "Transaction ID", accessor: "id" },
     { header: "User", accessor: "user" },
@@ -83,12 +115,12 @@ export default function Overview() {
         />
         <KpiCard 
           title="Active Users" 
-          value="45,231" 
+          value={stats.users.toLocaleString()} 
           icon={Users} 
         />
         <KpiCard 
           title="Total Merchants" 
-          value="1,240" 
+          value={stats.merchants.toLocaleString()} 
           icon={Store} 
         />
         <KpiCard 
@@ -134,11 +166,11 @@ export default function Overview() {
           <h3 className="text-lg font-semibold text-admin-on-surface mb-6">Action Items</h3>
           <div className="space-y-4">
             {[
-              { title: "Review 14 Pending KYC requests", time: "2 hours ago", type: "warning" },
+              { title: `Review ${stats.pendingKYC} Pending KYC request${stats.pendingKYC === 1 ? '' : 's'}`, time: "Just now", type: "warning", hide: stats.pendingKYC === 0 },
               { title: "Approve Merchant payout batches", time: "4 hours ago", type: "info" },
               { title: "System configuration update required", time: "1 day ago", type: "error" },
               { title: "New admin account created", time: "2 days ago", type: "success" }
-            ].map((item, i) => (
+            ].filter(item => !item.hide).map((item, i) => (
               <div key={i} className="flex gap-4 items-start pb-4 border-b border-admin-outline-variant last:border-0 last:pb-0">
                 <div className="mt-1">
                   <div className={`w-2.5 h-2.5 rounded-full ${

@@ -112,6 +112,10 @@ export const gatewayClient = {
     return handleRequest(`/admin/support/complaints?limit=${limit}&offset=${offset}`, { method: 'GET' });
   },
 
+  getAdminFeedbacks: async (limit = 100, offset = 0) => {
+    return handleRequest(`/admin/support/feedbacks?limit=${limit}&offset=${offset}`, { method: 'GET' });
+  },
+
   getAdminReports: async (limit = 100, offset = 0) => {
     return handleRequest(`/admin/support/reports?limit=${limit}&offset=${offset}`, { method: 'GET' });
   },
@@ -443,6 +447,28 @@ export const gatewayClient = {
     return handleRequest(url, {
       method: 'POST',
       body: JSON.stringify(payload)
+    });
+  },
+
+  // Merchant Support Routes
+  submitFeedback: async (feedbackData) => {
+    return handleRequest('/support/feedbacks', {
+      method: 'POST',
+      body: JSON.stringify(feedbackData)
+    });
+  },
+
+  submitComplaint: async (complaintData) => {
+    return handleRequest('/support/complaints', {
+      method: 'POST',
+      body: JSON.stringify(complaintData)
+    });
+  },
+
+  submitReport: async (reportData) => {
+    return handleRequest('/support/reports', {
+      method: 'POST',
+      body: JSON.stringify(reportData)
     });
   }
 };

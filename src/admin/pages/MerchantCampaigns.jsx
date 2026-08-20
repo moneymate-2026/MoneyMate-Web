@@ -9,7 +9,8 @@ import {
   Store,
   Calendar,
   X,
-  Plus
+  Plus,
+  Edit
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -22,7 +23,9 @@ export default function MerchantCampaigns() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [toast, setToast] = useState(null);
   
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState("create");
+  const [selectedCampaignId, setSelectedCampaignId] = useState(null);
   const [formData, setFormData] = useState({
     storeId: "",
     campaignName: "",
@@ -89,7 +92,31 @@ export default function MerchantCampaigns() {
     }
   };
 
-  const handleCreateSubmit = async (e) => {
+  const handleEditClick = (campaign) => {
+    setModalMode("edit");
+    setSelectedCampaignId(campaign.ID || campaign.id);
+    
+    const start = campaign.StartDate ? new Date(campaign.StartDate).toISOString().slice(0, 16) : "";
+    const end = campaign.EndDate ? new Date(campaign.EndDate).toISOString().slice(0, 16) : "";
+
+    setFormData({
+      storeId: campaign.StoreID || "",
+      campaignName: campaign.Name || campaign.title || "",
+      redeemCode: campaign.RedeemCode || "",
+      offerCategory: campaign.OfferCategory || "Retail",
+      offerType: campaign.OfferType || "Discount",
+      rewardValue: campaign.RewardValue || "",
+      minPurchase: campaign.MinBillAmount || "",
+      redemptionLimit: campaign.RedemptionLimit || "",
+      targetAudience: campaign.TargetAudience || "All Customers",
+      startDate: start,
+      endDate: end,
+      bannerUrl: campaign.BannerURL || ""
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (!formData.storeId) {
@@ -103,12 +130,17 @@ export default function MerchantCampaigns() {
         endDate: new Date(formData.endDate).toISOString(),
       };
       
-      await adminMerchantService.createAdminCampaign(formData.storeId, payload);
-      showToast("Campaign created successfully!");
-      setIsCreateModalOpen(false);
+      if (modalMode === "create") {
+        await adminMerchantService.createAdminCampaign(formData.storeId, payload);
+        showToast("Campaign created successfully!");
+      } else {
+        await adminMerchantService.updateAdminCampaign(selectedCampaignId, payload);
+        showToast("Campaign updated successfully!");
+      }
+      setIsModalOpen(false);
       fetchData();
     } catch (error) {
-      showToast("Error creating campaign", "error");
+      showToast(modalMode === "create" ? "Error creating campaign" : "Error updating campaign", "error");
     }
   };
 
@@ -180,7 +212,25 @@ export default function MerchantCampaigns() {
             <RefreshCcw size={20} className={loading ? "animate-spin" : ""} />
           </button>
           <button 
-            onClick={() => setIsCreateModalOpen(true)}
+            onClick={() => {
+              setModalMode("create");
+              setSelectedCampaignId(null);
+              setFormData({
+                storeId: "",
+                campaignName: "",
+                redeemCode: "",
+                offerCategory: "Retail",
+                offerType: "Discount",
+                rewardValue: "",
+                minPurchase: "",
+                redemptionLimit: "",
+                targetAudience: "All Customers",
+                startDate: new Date().toISOString().slice(0, 16),
+                endDate: "",
+                bannerUrl: ""
+              });
+              setIsModalOpen(true);
+            }}
             className="px-4 py-2 bg-admin-primary text-admin-on-primary rounded-xl font-semibold shadow-md shadow-admin-primary/20 hover:bg-admin-primary-container transition-all flex items-center gap-2 text-sm"
           >
             <Plus size={16} /> Create Campaign
@@ -199,6 +249,18 @@ export default function MerchantCampaigns() {
           </div>
           <div className="relative z-10">
             <h4 className="text-3xl font-extrabold text-admin-on-surface mb-2 tracking-tight">{activeCount}</h4>
+          </div>
+        </div>
+
+        <div className="bg-admin-surface-container border border-admin-outline-variant p-5 rounded-2xl flex flex-col justify-between shadow-sm relative overflow-hidden group">
+          <div className="flex justify-between items-start mb-4 relative z-10">
+            <h3 className="text-admin-on-surface-variant font-bold text-sm tracking-wide uppercase">Total Campaigns</h3>
+            <div className="p-2.5 bg-admin-surface-container-highest rounded-xl text-blue-500 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shadow-inner">
+              <FileText className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="relative z-10">
+            <h4 className="text-3xl font-extrabold text-admin-on-surface mb-2 tracking-tight">{campaigns.length}</h4>
           </div>
         </div>
       </div>
@@ -325,7 +387,14 @@ export default function MerchantCampaigns() {
                         </span>
                       </td>
                       <td className="p-4 align-middle text-right">
-                        <div className="flex items-center justify-end">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleEditClick(c)}
+                            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-bold text-xs transition-all bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border border-blue-100 hover:border-blue-600"
+                          >
+                            <Edit size={14} />
+                            <span>Edit</span>
+                          </button>
                           {displayStatus === "Active" ? (
                             <button 
                               onClick={() => handleCloseCampaign(id)}
@@ -350,29 +419,33 @@ export default function MerchantCampaigns() {
         </div>
       </div>
 
-      {/* CREATE CAMPAIGN MODAL */}
-      {isCreateModalOpen && (
+      {/* CREATE/EDIT CAMPAIGN MODAL */}
+      {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-admin-surface-container rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden border border-admin-outline-variant animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
             <div className="p-6 border-b border-admin-outline-variant flex justify-between items-center bg-admin-surface-container-high shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-admin-primary/10 text-admin-primary flex items-center justify-center font-bold">
-                  <Plus className="w-5 h-5" />
+                  {modalMode === "create" ? <Plus className="w-5 h-5" /> : <Edit className="w-5 h-5" />}
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-lg text-admin-on-surface">Create New Campaign/Offer</h3>
-                  <span className="text-xs text-admin-on-surface-variant">Publish a new campaign or offer for a specific store</span>
+                  <h3 className="font-extrabold text-lg text-admin-on-surface">
+                    {modalMode === "create" ? "Create New Campaign/Offer" : "Edit Campaign/Offer"}
+                  </h3>
+                  <span className="text-xs text-admin-on-surface-variant">
+                    {modalMode === "create" ? "Publish a new campaign or offer for a specific store" : "Update details for the selected campaign"}
+                  </span>
                 </div>
               </div>
               <button 
-                onClick={() => setIsCreateModalOpen(false)}
+                onClick={() => setIsModalOpen(false)}
                 className="p-1.5 hover:bg-admin-surface-container-highest rounded-full text-admin-on-surface-variant hover:text-admin-on-surface transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateSubmit} className="p-6 space-y-4 overflow-y-auto flex-1 text-sm">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1 text-sm">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 
                 <div className="flex flex-col gap-1 sm:col-span-2">
@@ -534,7 +607,7 @@ export default function MerchantCampaigns() {
               <div className="flex justify-end gap-3 pt-6 border-t border-admin-outline-variant mt-4">
                 <button 
                   type="button" 
-                  onClick={() => setIsCreateModalOpen(false)}
+                  onClick={() => setIsModalOpen(false)}
                   className="px-6 py-2.5 rounded-xl font-bold text-admin-on-surface hover:bg-admin-surface-container-highest transition-colors"
                 >
                   Cancel
@@ -543,7 +616,7 @@ export default function MerchantCampaigns() {
                   type="submit" 
                   className="px-6 py-2.5 bg-admin-primary text-admin-on-primary rounded-xl font-bold shadow-lg shadow-admin-primary/20 hover:bg-admin-primary-container transition-all"
                 >
-                  Publish Campaign
+                  {modalMode === "create" ? "Publish Campaign" : "Update Campaign"}
                 </button>
               </div>
             </form>
