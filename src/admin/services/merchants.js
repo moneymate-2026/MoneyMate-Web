@@ -165,7 +165,6 @@ export const adminMerchantService = {
     };
     return gatewayClient.put(`/merchant/${id}/profile`, payload);
   },
-
   deleteMerchant: async (id) => {
     return gatewayClient.delete(`/admin/merchants/${id}`);
   },
@@ -228,10 +227,15 @@ export const adminMerchantService = {
   },
 
   getSubscriptionPlans: async () => {
-    return gatewayClient.get('/merchant/subscriptions/plans');
+    return gatewayClient.get('/merchant/public/subscriptions/plans');
   },
 
   getAdminSubscriptions: async () => {
     return gatewayClient.get('/admin/subscriptions');
+  },
+
+  getDashboardStats: async () => {
+    return gatewayClient.get('/admin/dashboard/stats');
   }
 };
+

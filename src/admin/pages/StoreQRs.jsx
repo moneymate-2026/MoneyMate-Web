@@ -11,6 +11,7 @@ import {
   FileText
 } from "lucide-react";
 import clsx from "clsx";
+import StatusBadge from "../components/StatusBadge";
 
 export default function StoreQRs() {
   const [merchants, setMerchants] = useState([]);
@@ -218,32 +219,33 @@ export default function StoreQRs() {
                         </span>
                       </td>
                       <td className="p-4 align-middle">
-                        <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${
-                          displayStatus === 'Active' ? 'bg-green-500/20 text-green-500' :
-                          displayStatus === 'Blocked' ? 'bg-red-500/20 text-red-500' :
-                          'bg-amber-500/20 text-amber-500'
-                        }`}>
-                          {displayStatus}
-                        </span>
+                        <StatusBadge 
+                          status={displayStatus} 
+                          variant={
+                            displayStatus === 'Active' ? 'success' :
+                            displayStatus === 'Blocked' ? 'error' :
+                            'warning'
+                          } 
+                        />
                       </td>
                       <td className="p-4 align-middle text-right">
                         <div className="flex items-center justify-end">
                           <button 
                             onClick={() => handleToggleBlock(id, rawStatus)}
-                            className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${
+                            className={`flex items-center space-x-1.5 px-2 py-1.5 rounded-lg font-bold text-xs transition-all text-admin-on-surface-variant ${
                               displayStatus === "Blocked" 
-                                ? "bg-green-50 text-green-600 hover:bg-green-600 hover:text-white" 
-                                : "bg-red-50 text-red-600 hover:bg-red-600 hover:text-white"
+                                ? "hover:text-green-500 hover:bg-green-500/10" 
+                                : "hover:text-red-500 hover:bg-red-500/10"
                             }`}
                           >
                             {displayStatus === "Blocked" ? (
                               <>
-                                <CheckCircle2 size={16} />
+                                <CheckCircle2 size={14} />
                                 <span>Unblock</span>
                               </>
                             ) : (
                               <>
-                                <Ban size={16} />
+                                <Ban size={14} />
                                 <span>Block</span>
                               </>
                             )}

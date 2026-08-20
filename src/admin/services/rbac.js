@@ -1,4 +1,5 @@
 import { gatewayClient } from "../../api/gatewayClient";
+import { adminAuditService } from "./audit";
 
 export const rbacService = {
   // --- Roles ---
@@ -14,16 +15,28 @@ export const rbacService = {
 
   createRole: async (roleData) => {
     const response = await gatewayClient.post('/admin/roles', roleData);
+    await adminAuditService.createAuditLog({
+      module: "RBAC",
+      action: `Created new role: ${roleData.name}`
+    });
     return response.data?.data || response.data;
   },
 
   updateRole: async (id, roleData) => {
     const response = await gatewayClient.put(`/admin/roles/${id}`, roleData);
+    await adminAuditService.createAuditLog({
+      module: "RBAC",
+      action: `Updated role: ${roleData.name || id}`
+    });
     return response.data?.data || response.data;
   },
 
   deleteRole: async (id) => {
     const response = await gatewayClient.delete(`/admin/roles/${id}`);
+    await adminAuditService.createAuditLog({
+      module: "RBAC",
+      action: `Deleted role ID: ${id}`
+    });
     return response.data?.data || response.data;
   },
 
@@ -54,12 +67,20 @@ export const rbacService = {
       role_id: roleId,
       permission_id: permissionId
     });
+    await adminAuditService.createAuditLog({
+      module: "RBAC",
+      action: `Assigned permission ${permissionId} to role ${roleId}`
+    });
     return response.data?.data || response.data;
   },
 
   // Remove a permission from a role
   removePermissionFromRole: async (roleId, permissionId) => {
     const response = await gatewayClient.delete(`/admin/permissions/roles/${roleId}/permissions/${permissionId}`);
+    await adminAuditService.createAuditLog({
+      module: "RBAC",
+      action: `Removed permission ${permissionId} from role ${roleId}`
+    });
     return response.data?.data || response.data;
   },
 

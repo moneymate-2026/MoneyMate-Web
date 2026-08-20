@@ -13,6 +13,7 @@ import {
   Edit
 } from "lucide-react";
 import clsx from "clsx";
+import StatusBadge from "../components/StatusBadge";
 
 export default function MerchantCampaigns() {
   const [campaigns, setCampaigns] = useState([]);
@@ -378,19 +379,20 @@ export default function MerchantCampaigns() {
                         </span>
                       </td>
                       <td className="p-4 align-middle">
-                        <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${
-                          displayStatus === 'Active' ? 'bg-green-500/20 text-green-500' :
-                          displayStatus === 'Expired' ? 'bg-amber-500/20 text-amber-500' :
-                          'bg-red-500/20 text-red-500'
-                        }`}>
-                          {displayStatus}
-                        </span>
+                        <StatusBadge 
+                          status={displayStatus} 
+                          variant={
+                            displayStatus === 'Active' ? 'success' :
+                            displayStatus === 'Expired' ? 'warning' :
+                            'error'
+                          } 
+                        />
                       </td>
                       <td className="p-4 align-middle text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => handleEditClick(c)}
-                            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-bold text-xs transition-all bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border border-blue-100 hover:border-blue-600"
+                            className="flex items-center space-x-1.5 px-2 py-1.5 rounded-lg font-bold text-xs transition-all text-admin-on-surface-variant hover:text-blue-500 hover:bg-blue-500/10"
                           >
                             <Edit size={14} />
                             <span>Edit</span>
@@ -398,7 +400,7 @@ export default function MerchantCampaigns() {
                           {displayStatus === "Active" ? (
                             <button 
                               onClick={() => handleCloseCampaign(id)}
-                              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-bold text-xs transition-all bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-100 hover:border-red-600"
+                              className="flex items-center space-x-1.5 px-2 py-1.5 rounded-lg font-bold text-xs transition-all text-admin-on-surface-variant hover:text-red-500 hover:bg-red-500/10"
                             >
                               <XCircle size={14} />
                               <span>Close</span>

@@ -313,14 +313,14 @@ export default function KYCVerification() {
                             <>
                               <button 
                                 onClick={() => handleApprove(m.id)}
-                                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-bold text-xs transition-all bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white border border-green-500/20 hover:border-green-500"
+                                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-semibold text-xs transition-all bg-admin-surface-container-high border border-admin-outline-variant text-admin-on-surface hover:bg-green-500/10 hover:text-green-500 hover:border-green-500/30"
                               >
                                 <CheckCircle2 size={14} />
                                 <span>Approve</span>
                               </button>
                               <button 
                                 onClick={() => handleReject(m.id)}
-                                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-bold text-xs transition-all bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20 hover:border-red-500"
+                                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-semibold text-xs transition-all bg-admin-surface-container-high border border-admin-outline-variant text-admin-on-surface hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30"
                               >
                                 <XCircle size={14} />
                                 <span>Reject</span>

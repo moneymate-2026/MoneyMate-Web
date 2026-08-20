@@ -32,11 +32,11 @@ export default function MerchantSidebar({ currentPath, navigate }) {
   return (
     <div className="w-[280px] flex-shrink-0 bg-surface-container border-r border-outline-variant h-screen hidden md:flex flex-col overflow-hidden shadow-[4px_0_24px_rgba(0,0,0,0.2)] fixed left-0 top-0 z-40 transition-colors duration-200">
       <div className="h-[72px] flex items-center px-6 border-b border-outline-variant shrink-0 gap-3">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-lg bg-gradient-to-r from-[#a87ffb] to-[#00d0ff] text-white shadow-lg shadow-primary/20">
-          M
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-lg bg-gradient-to-r from-[#a87ffb] to-[#00d0ff] text-white shadow-lg shadow-primary/20 overflow-hidden">
+          <img src="/logo.png" alt="M" className="w-full h-full object-cover object-top scale-[1.2]" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-on-surface tracking-tight leading-tight">MoneyMate</h1>
+          <h1 className="text-lg font-bold text-on-surface tracking-tight leading-tight truncate w-[160px]">MoneyMate Web App</h1>
           <p className="text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Merchant</p>
         </div>
       </div>

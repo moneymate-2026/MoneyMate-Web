@@ -4,6 +4,7 @@ import DataTable from "../components/DataTable";
 import StatusBadge from "../components/StatusBadge";
 import { adminUserService } from "../services/users";
 import { adminMerchantService } from "../services/merchants";
+import { adminAuditService } from "../services/audit";
 import { Users, Store, Wallet, Activity, ArrowUpRight, Gift, Banknote, CreditCard } from "lucide-react";
 import {
   AreaChart,
@@ -15,45 +16,44 @@ import {
   ResponsiveContainer
 } from "recharts";
 
-const chartData = [
-  { name: "Mon", revenue: 4000 },
-  { name: "Tue", revenue: 3000 },
-  { name: "Wed", revenue: 2000 },
-  { name: "Thu", revenue: 2780 },
-  { name: "Fri", revenue: 1890 },
-  { name: "Sat", revenue: 2390 },
-  { name: "Sun", revenue: 3490 },
-];
-
-const recentTransactions = [
-  { id: "TXN-001", user: "Alice Smith", amount: "₹1,200.00", date: "2026-07-23", status: "Completed" },
-  { id: "TXN-002", user: "Bob Jones", amount: "₹450.00", date: "2026-07-23", status: "Pending" },
-  { id: "TXN-003", user: "Charlie Davis", amount: "₹3,400.00", date: "2026-07-22", status: "Completed" },
-  { id: "TXN-004", user: "Diana Evans", amount: "₹150.00", date: "2026-07-22", status: "Failed" },
-  { id: "TXN-005", user: "Ethan Hall", amount: "₹890.00", date: "2026-07-21", status: "Completed" },
-];
+const chartData = [];
 
 export default function Overview() {
   const [stats, setStats] = useState({
     users: 0,
     merchants: 0,
-    pendingKYC: 0
+    pendingKYC: 0,
+    totalRevenue: "₹0",
+    rewardPool: "₹0",
+    systemWallet: "₹0",
+    dailyTransactions: 0,
+    recentTransactions: [],
+    auditLogs: []
   });
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const [usersRes, merchantsRes] = await Promise.all([
+        const [usersRes, merchantsRes, statsRes, auditRes] = await Promise.all([
           adminUserService.getUsers(),
-          adminMerchantService.getMerchants()
+          adminMerchantService.getMerchants(),
+          adminMerchantService.getDashboardStats(),
+          adminAuditService.getAuditLogs()
         ]);
         
         const pendingCount = merchantsRes.data.filter(m => m.kycStatus === "Pending").length;
+        const dashboardStats = statsRes?.data?.data || {};
         
         setStats({
           users: usersRes.total || usersRes.data?.length || 0,
           merchants: merchantsRes.total || merchantsRes.data?.length || 0,
-          pendingKYC: pendingCount
+          pendingKYC: pendingCount,
+          totalRevenue: `₹${(dashboardStats.total_revenue || 0).toLocaleString('en-IN')}`,
+          rewardPool: `₹${(dashboardStats.reward_pool || 0).toLocaleString('en-IN')}`,
+          systemWallet: `₹${(dashboardStats.system_wallet || 0).toLocaleString('en-IN')}`,
+          dailyTransactions: dashboardStats.daily_transactions || 0,
+          recentTransactions: dashboardStats.recent_transactions || [],
+          auditLogs: Array.isArray(auditRes) ? auditRes.slice(0, 5) : []
         });
       } catch (error) {
         console.error("Failed to fetch dashboard overview data:", error);
@@ -100,17 +100,17 @@ export default function Overview() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <KpiCard 
           title="Total Revenue" 
-          value="₹1,24,500" 
+          value={stats.totalRevenue} 
           icon={Banknote} 
         />
         <KpiCard 
           title="Reward Pool" 
-          value="₹45,200" 
+          value={stats.rewardPool} 
           icon={Gift} 
         />
         <KpiCard 
           title="System Wallet" 
-          value="₹8,90,500" 
+          value={stats.systemWallet} 
           icon={Wallet} 
         />
         <KpiCard 
@@ -125,7 +125,7 @@ export default function Overview() {
         />
         <KpiCard 
           title="Daily Transactions" 
-          value="8,432" 
+          value={stats.dailyTransactions.toLocaleString()} 
           icon={Activity} 
         />
       </div>
@@ -163,29 +163,27 @@ export default function Overview() {
         </div>
 
         <div className="bg-admin-surface-container border border-admin-outline-variant rounded-xl p-6 shadow-lg">
-          <h3 className="text-lg font-semibold text-admin-on-surface mb-6">Action Items</h3>
+          <h3 className="text-lg font-semibold text-admin-on-surface mb-6">Recent Audit Logs</h3>
           <div className="space-y-4">
-            {[
-              { title: `Review ${stats.pendingKYC} Pending KYC request${stats.pendingKYC === 1 ? '' : 's'}`, time: "Just now", type: "warning", hide: stats.pendingKYC === 0 },
-              { title: "Approve Merchant payout batches", time: "4 hours ago", type: "info" },
-              { title: "System configuration update required", time: "1 day ago", type: "error" },
-              { title: "New admin account created", time: "2 days ago", type: "success" }
-            ].filter(item => !item.hide).map((item, i) => (
-              <div key={i} className="flex gap-4 items-start pb-4 border-b border-admin-outline-variant last:border-0 last:pb-0">
-                <div className="mt-1">
-                  <div className={`w-2.5 h-2.5 rounded-full ${
-                    item.type === 'warning' ? 'bg-amber-500' :
-                    item.type === 'error' ? 'bg-admin-error' :
-                    item.type === 'success' ? 'bg-green-500' :
-                    'bg-admin-primary'
-                  }`} />
+            {stats.auditLogs.length > 0 ? (
+              stats.auditLogs.map((log, i) => (
+                <div key={i} className="flex gap-4 items-start pb-4 border-b border-admin-outline-variant last:border-0 last:pb-0">
+                  <div className="mt-1">
+                    <div className="w-2.5 h-2.5 rounded-full bg-admin-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-admin-on-surface leading-tight">
+                      {log.admin_name} ({log.admin_role}) {log.action} in {log.module}
+                    </p>
+                    <p className="text-xs text-admin-on-surface-variant mt-1">
+                      {new Date(log.created_at).toLocaleString()}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-admin-on-surface leading-tight">{item.title}</p>
-                  <p className="text-xs text-admin-on-surface-variant mt-1">{item.time}</p>
-                </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-sm text-admin-on-surface-variant">No recent audit logs found.</p>
+            )}
           </div>
         </div>
       </div>
@@ -200,7 +198,7 @@ export default function Overview() {
             View All
           </button>
         </div>
-        <DataTable columns={columns} data={recentTransactions} className="border-0 shadow-none rounded-none" />
+        <DataTable columns={columns} data={stats.recentTransactions} className="border-0 shadow-none rounded-none" />
       </div>
     </div>
   );

@@ -17,7 +17,8 @@ import {
   Crown,
   AlertTriangle,
   Headphones,
-  LogOut
+  LogOut,
+  Lock
 } from "lucide-react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -91,46 +92,64 @@ export default function Sidebar() {
         <div className="w-9 h-9 overflow-hidden flex-shrink-0 flex items-start justify-center">
           <img src="/logo.png" alt="M" className="w-full h-full object-cover object-top scale-[1.4] origin-top mix-blend-screen" />
         </div>
-        <h1 className="text-[22px] font-extrabold text-white tracking-tight">MoneyMate</h1>
+        <h1 className="text-xl font-extrabold text-white tracking-tight">MoneyMate Web App</h1>
       </div>
       
       <div className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-6 custom-scrollbar">
         {navGroups.map((group, groupIdx) => {
-          const visibleItems = group.items.filter(item => hasAnyPermission(item.module));
-          if (visibleItems.length === 0) return null;
-
           return (
             <div key={groupIdx} className="flex flex-col gap-2">
               <h3 className="text-[12px] font-bold text-admin-on-surface-variant uppercase tracking-[0.15em] px-2 mb-1">
                 {group.category}
               </h3>
               <div className="flex flex-col gap-1">
-                {visibleItems.map((item) => (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    end={item.path === "/admin"}
-                    className={({ isActive }) => cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 relative group",
-                      isActive 
-                        ? "bg-admin-primary/10 text-admin-primary font-bold" 
-                        : "text-slate-200 hover:bg-admin-surface-container-high hover:text-white"
-                    )}
-                  >
-                    {({ isActive }) => (
-                      <>
-                        {isActive && (
-                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-admin-primary rounded-r-full shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
-                        )}
+                {group.items.map((item) => {
+                  const isLocked = !hasAnyPermission(item.module);
+                  
+                  if (isLocked) {
+                    return (
+                      <div
+                        key={item.path}
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium opacity-50 cursor-not-allowed bg-transparent text-slate-400 group"
+                        title="You do not have permission to access this area"
+                      >
                         <item.icon 
-                          className={cn("w-[22px] h-[22px] flex-shrink-0 transition-colors", isActive ? "text-admin-primary" : "text-slate-300 group-hover:text-white")} 
-                          strokeWidth={isActive ? 2.5 : 2.25} 
+                          className="w-[22px] h-[22px] flex-shrink-0 text-slate-500" 
+                          strokeWidth={2.25} 
                         />
-                        {item.label}
-                      </>
-                    )}
-                  </NavLink>
-                ))}
+                        <span className="flex-1">{item.label}</span>
+                        <Lock className="w-4 h-4 text-slate-500" />
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      end={item.path === "/admin"}
+                      className={({ isActive }) => cn(
+                        "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 relative group",
+                        isActive 
+                          ? "bg-admin-primary/10 text-admin-primary font-bold" 
+                          : "text-slate-200 hover:bg-admin-surface-container-high hover:text-white"
+                      )}
+                    >
+                      {({ isActive }) => (
+                        <>
+                          {isActive && (
+                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-admin-primary rounded-r-full shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+                          )}
+                          <item.icon 
+                            className={cn("w-[22px] h-[22px] flex-shrink-0 transition-colors", isActive ? "text-admin-primary" : "text-slate-300 group-hover:text-white")} 
+                            strokeWidth={isActive ? 2.5 : 2.25} 
+                          />
+                          {item.label}
+                        </>
+                      )}
+                    </NavLink>
+                  );
+                })}
               </div>
             </div>
           );

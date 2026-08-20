@@ -20,6 +20,7 @@ import WebConfig from "./pages/WebConfig";
 import Settings from "./pages/Settings";
 import AdminLogin from "./pages/AdminLogin";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
+import AdminModuleRoute from "./components/AdminModuleRoute";
 
 export default function AdminRouter() {
   return (
@@ -27,23 +28,28 @@ export default function AdminRouter() {
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route element={<AdminProtectedRoute />}>
         <Route path="/admin" element={<AdminProvider><AdminLayout /></AdminProvider>}>
-          <Route index element={<Overview />} />
-          <Route path="wallets" element={<Wallets />} />
-          <Route path="users" element={<UserManagement />} />
-          <Route path="merchants" element={<MerchantManagement />} />
-          <Route path="kyc" element={<KYCVerification />} />
-          <Route path="merchant-campaigns" element={<MerchantCampaigns />} />
-          <Route path="store-qrs" element={<StoreQRs />} />
-          <Route path="merchant-plans" element={<MerchantPlans />} />
-          <Route path="transactions" element={<Transactions />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="complaints" element={<Complaints />} />
-          <Route path="feedbacks" element={<Feedbacks />} />
-          <Route path="audit" element={<AuditLogs />} />
-          <Route path="support" element={<ChatSupport />} />
-          <Route path="rbac" element={<RBAC />} />
-          <Route path="config" element={<WebConfig />} />
-          <Route path="settings" element={<Settings />} />
+          <Route index element={<AdminModuleRoute module="dashboard"><Overview /></AdminModuleRoute>} />
+          <Route path="wallets" element={<AdminModuleRoute module="dashboard"><Wallets /></AdminModuleRoute>} />
+          
+          <Route path="users" element={<AdminModuleRoute module="users"><UserManagement /></AdminModuleRoute>} />
+          <Route path="merchants" element={<AdminModuleRoute module="store"><MerchantManagement /></AdminModuleRoute>} />
+          <Route path="kyc" element={<AdminModuleRoute module="users"><KYCVerification /></AdminModuleRoute>} />
+          
+          <Route path="merchant-campaigns" element={<AdminModuleRoute module="store"><MerchantCampaigns /></AdminModuleRoute>} />
+          <Route path="store-qrs" element={<AdminModuleRoute module="store"><StoreQRs /></AdminModuleRoute>} />
+          <Route path="merchant-plans" element={<AdminModuleRoute module="store"><MerchantPlans /></AdminModuleRoute>} />
+          
+          <Route path="transactions" element={<AdminModuleRoute module="dashboard"><Transactions /></AdminModuleRoute>} />
+          
+          <Route path="reports" element={<AdminModuleRoute module="support"><Reports /></AdminModuleRoute>} />
+          <Route path="complaints" element={<AdminModuleRoute module="support"><Complaints /></AdminModuleRoute>} />
+          <Route path="feedbacks" element={<AdminModuleRoute module="support"><Feedbacks /></AdminModuleRoute>} />
+          <Route path="support" element={<AdminModuleRoute module="support"><ChatSupport /></AdminModuleRoute>} />
+          
+          <Route path="audit" element={<AdminModuleRoute module="settings"><AuditLogs /></AdminModuleRoute>} />
+          <Route path="rbac" element={<AdminModuleRoute module="settings"><RBAC /></AdminModuleRoute>} />
+          <Route path="config" element={<AdminModuleRoute module="settings"><WebConfig /></AdminModuleRoute>} />
+          <Route path="settings" element={<AdminModuleRoute module="settings"><Settings /></AdminModuleRoute>} />
         </Route>
       </Route>
     </Routes>

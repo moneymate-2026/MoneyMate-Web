@@ -11,6 +11,7 @@ import {
   FileText,
   Plus
 } from "lucide-react";
+import StatusBadge from "../components/StatusBadge";
 
 export default function MerchantPlans() {
   const [subscriptions, setSubscriptions] = useState([]);
@@ -157,15 +158,11 @@ export default function MerchantPlans() {
         <KpiCard 
           title="Total Monthly Revenue" 
           value={`$${totalMRR.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} 
-          trend="up" 
-          trendValue="Based on active plans" 
           icon={DollarSign} 
         />
         <KpiCard 
           title="Active Subscribers" 
           value={totalSubscribers.toLocaleString()} 
-          trend="up" 
-          trendValue="Currently active" 
           icon={Users} 
         />
       </div>
@@ -273,22 +270,23 @@ export default function MerchantPlans() {
                         </div>
                       </td>
                       <td className="p-4 align-top">
-                        <span className={`px-2 py-1 rounded text-xs font-semibold capitalize ${
-                          status === 'active' ? 'bg-green-500/20 text-green-500' :
-                          status === 'cancelled' ? 'bg-admin-error/20 text-admin-error' :
-                          'bg-gray-500/20 text-gray-400'
-                        }`}>
-                          {status}
-                        </span>
+                        <StatusBadge 
+                          status={status.charAt(0).toUpperCase() + status.slice(1)} 
+                          variant={
+                            status === 'active' ? 'success' :
+                            status === 'cancelled' ? 'error' :
+                            'default'
+                          } 
+                        />
                       </td>
                       <td className="p-4 align-top">
                         {status === 'active' && planCode !== 'basic' && (
                           <button 
                             onClick={() => handleCancelSubscription(storeId)}
-                            className="flex items-center space-x-1 text-admin-error hover:text-red-400 bg-admin-error/10 hover:bg-admin-error/20 px-2 py-1 rounded text-sm transition-colors"
+                            className="flex items-center space-x-1.5 px-2 py-1.5 rounded-lg font-bold text-xs transition-all text-admin-on-surface-variant hover:text-red-500 hover:bg-red-500/10"
                             title="Cancel Subscription"
                           >
-                            <XCircle size={16} />
+                            <XCircle size={14} />
                             <span>Cancel</span>
                           </button>
                         )}
