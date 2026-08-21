@@ -62,6 +62,17 @@ export default function MerchantRouter() {
     }
   }, [toast]);
 
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      setToast({ message: 'Your session has expired. Please log in again.', type: 'error' });
+      window.history.replaceState(null, '', '/merchant/login');
+      setPath('/merchant/login');
+    };
+
+    window.addEventListener('auth_expired', handleAuthExpired);
+    return () => window.removeEventListener('auth_expired', handleAuthExpired);
+  }, []);
+
   const navigate = (newPath, replace = false) => {
     const isAuthenticated = !!localStorage.getItem('merchant_token');
     const publicRoutes = ['/merchant/welcome', '/merchant/register', '/merchant/login', '/merchant/verification-pending'];

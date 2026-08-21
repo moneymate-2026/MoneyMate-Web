@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import React, { useEffect } from 'react';
+import { Routes, Route, useNavigate } from "react-router-dom";
 import AdminLayout from "./AdminLayout";
 import { AdminProvider } from "./components/AdminContext";
 import Overview from "./pages/Overview";
@@ -23,6 +24,17 @@ import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import AdminModuleRoute from "./components/AdminModuleRoute";
 
 export default function AdminRouter() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      navigate('/admin/login', { replace: true });
+    };
+
+    window.addEventListener('admin_auth_expired', handleAuthExpired);
+    return () => window.removeEventListener('admin_auth_expired', handleAuthExpired);
+  }, [navigate]);
+
   return (
     <Routes>
       <Route path="/admin/login" element={<AdminLogin />} />

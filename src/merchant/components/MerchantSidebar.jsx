@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { gatewayClient } from '../../api/gatewayClient';
 
 function cn(...inputs) {
   return twMerge(clsx(inputs));
@@ -85,7 +86,10 @@ export default function MerchantSidebar({ currentPath, navigate }) {
             Settings
           </button>
           <button 
-            onClick={() => navigate('/merchant/welcome')}
+            onClick={() => {
+              gatewayClient.logout();
+              navigate('/merchant/welcome');
+            }}
             className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium text-error hover:bg-error/10 transition-all duration-200 w-full text-left"
           >
             <LogOut className="w-[22px] h-[22px] flex-shrink-0" strokeWidth={2.25} />

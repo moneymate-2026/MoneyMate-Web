@@ -47,10 +47,18 @@ const handleRequest = async (url, options = {}) => {
     // On 401 Unauthorized, we throw a specific error instead of aggressively hard-redirecting, 
     // to prevent redirect loops when the backend middleware has a token validation issue.
     if (response.status === 401 && !url.includes('/login') && !url.includes('/register')) {
-      // We will still clear the token so the app knows we are unauthenticated,
-      // but we won't force a hard reload loop.
       console.warn("Backend rejected token (401). Middleware may be misconfigured.");
-      // Optional: window.dispatchEvent(new Event('auth_expired'));
+      
+      if (!isRouteAdmin) {
+        localStorage.removeItem('merchant_token');
+        localStorage.removeItem('merchant_store_id');
+        localStorage.removeItem('merchant_data');
+        window.dispatchEvent(new Event('auth_expired'));
+      } else {
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('admin_data');
+        window.dispatchEvent(new Event('admin_auth_expired'));
+      }
     }
 
     let errorMessage = `HTTP error ${response.status}`;
